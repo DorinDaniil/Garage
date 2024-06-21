@@ -121,7 +121,8 @@ logs/
 *.csv
 !.dvc
 
-#PowerPaint/models/unet/
+PowerPaint/models/unet/text_encoder.safetensors
+PowerPaint/models/unet/unet.safetensors
 VOC2007/
 VOC2007_augmentation/
 VOC_demo/
