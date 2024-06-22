@@ -5,7 +5,6 @@ from math import ceil
 from PIL import Image, ImageDraw
 from typing import List, Optional, Tuple
 from PowerPaint.pipeline.pipeline_PowerPaint import StableDiffusionInpaintPipeline as Pipeline
-from PowerPaint.pipeline.pipeline_PowerPaint import prepare_mask_and_masked_image
 from PowerPaint.power_paint_utils import TokenizerWrapper, add_tokens
 from safetensors.torch import load_model
 
@@ -147,9 +146,9 @@ class augmenter():
         new_object = self._get_output_mistral(PROMPT1v1 if new_objects_list is None else PROMPT1v2).lower()
       
         if new_object.startswith('a '):
-            new_object_return = new_object[2:]
+            new_object_return = new_object[2:].replace(' ', '')
         else:
-            new_object_return = new_object
+            new_object_return = new_object.replace(' ', '')
 
         PROMPT2 = "USER: Imagine you are describing the visual appearance of an object using only adjectives. "\
                 "Your task is to provide a brief and detailed visual description "\
