@@ -4,8 +4,8 @@ import transformers
 from math import ceil
 from PIL import Image, ImageDraw
 from typing import List, Optional, Tuple
-from PowerPaint.pipeline.pipeline_PowerPaint import StableDiffusionInpaintPipeline as Pipeline
-from PowerPaint.power_paint_utils import TokenizerWrapper, add_tokens
+from PowerPaintPipeline import StableDiffusionInpaintPipeline as Pipeline
+from PowerPaintPipeline import TokenizerWrapper, add_tokens
 from safetensors.torch import load_model
 
 
@@ -93,8 +93,8 @@ class augmenter():
             num_vectors_per_token=10,
         )
 
-        load_model(self.pipe.unet, "./PowerPaint/models/unet/unet.safetensors")
-        load_model(self.pipe.text_encoder, "./PowerPaint/models/unet/text_encoder.safetensors", strict=False)
+        load_model(self.pipe.unet, "./unet/unet.safetensors")
+        load_model(self.pipe.text_encoder, "./unet/text_encoder.safetensors", strict=False)
         self.pipe = self.pipe.to(self.device)
 
     def _resize_image_div(self, pil_image: Image.Image, size: int = 8) -> Image.Image:
