@@ -1,8 +1,19 @@
-from math import ceil
-from PIL import Image, ImageDraw
 import os
 import copy
 import xml.etree.ElementTree as ET
+from math import ceil
+from PIL import Image, ImageDraw
+from typing import Any, Dict, List, Optional, Tuple
+
+def PILmask_from_bboxcords(cords: Tuple[int, int, int, int], img_width: int, img_height: int) -> Image.Image:
+    xmin, ymin, xmax, ymax = cords
+    # Create black PIL mask
+    pil_mask = Image.new('L', (img_width, img_height))
+    # Draw white bounding box on the image
+    draw = ImageDraw.Draw(pil_img)
+    draw.rectangle([xmin, ymin, xmax, ymax], fill=255)
+    return pil_mask
+
 
 def resize_image_div(img, size=8):
     # Get original image dimensions
