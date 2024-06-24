@@ -6,11 +6,11 @@ The AugmenterPipeline is a model that utilizes Mistral, Llava, and StableDiffusi
 Usage
 -----
 
-To use the AugmenterPipeline, first create an instance of the class with the desired device for model inference:
+To use the AugmenterPipeline, first create an instance of the model with the desired device for model inference:
 ```python
 augmenter = augmenter(device='cuda')
 ```
-Then, call the `__call__` method of the class to replace an object in an image:
+Then, call the `__call__` method of the model to replace an object in the image:
 ```python
 modified_image, new_object, prompt = augmenter(pil_image,
                                                pil_mask,
@@ -37,5 +37,5 @@ Note: The first time an instance of the AugmenterPipeline class is created, it w
 Examples
 --------
 The experiments used the [PASCAL VOC 2007 dataset](http://host.robots.ox.ac.uk/pascal/VOC/voc2007/).
-For examples of how to use the AugmenterPipeline, please refer to the augmentation_experiments.ipynb
+For examples of how to use the AugmenterPipeline refer to the augmentation_experiments.ipynb
 
