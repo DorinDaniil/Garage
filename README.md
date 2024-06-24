@@ -32,7 +32,7 @@ The `__call__` method takes the following parameters:
 
 The `__call__` method returns a tuple containing the modified image and, optionally, the new object and the prompt used for generation.
 
-Note: The first time an instance of the AugmenterPipeline class is created, it will automatically download the necessary UNET model weights to the same directory as the model and load them during initialization.
+Note: The first time an instance of the AugmenterPipeline model is created, it will automatically download the necessary UNET model weights to the same directory as the model and load them during initialization.
 
 Examples
 --------
