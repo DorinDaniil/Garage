@@ -12,7 +12,13 @@ augmenter = augmenter(device='cuda')
 ```
 Then, call the `__call__` method of the class to replace an object in an image:
 ```python
-modified_image, new_object, prompt = augmenter(pil_image, pil_mask, current_object, new_objects_list=None, num_inference_steps=200, guidance_scale=6, return_prompt=True)
+modified_image, new_object, prompt = augmenter(pil_image,
+                                               pil_mask,
+                                               current_object,
+                                               new_objects_list,
+                                               num_inference_steps,
+                                               guidance_scale,
+                                               return_prompt)
 ```
 The `__call__` method takes the following parameters:
 
@@ -30,5 +36,6 @@ Note: The first time an instance of the AugmenterPipeline class is created, it w
 
 Examples
 --------
+The experiments used the [PASCAL VOC 2007 dataset](http://host.robots.ox.ac.uk/pascal/VOC/voc2007/).
+For examples of how to use the AugmenterPipeline, please refer to the augmentation_experiments.ipynb
 
-For examples of how to use the AugmenterPipeline, please refer to the provided Jupyter notebook.
