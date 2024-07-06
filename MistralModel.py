@@ -18,11 +18,10 @@ class MistralModel:
             "temperature": 1,
             "top_p": 0.90,
             "top_k": 40,
-            "max_new_tokens": 256,
+            "max_new_tokens": 77,
             "repetition_penalty": 1.1,
             "pad_token_id": self.tokenizer.eos_token_id,
         }
-        
     def infer_prompt(
         self,
         prompt

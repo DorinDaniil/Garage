@@ -1,3 +1,4 @@
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -123,5 +124,6 @@ logs/
 
 unet/
 VOC2007/
-VOC2007_augmentation/
-VOC_demo/
+VOC2007_augmentation_only1obj/
+VOC2007_augmentation_pottedplant/
+VOC2007_augmentation_train/
