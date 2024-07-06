@@ -1,7 +1,7 @@
 Overview
 --------
 
-The AugmenterPipeline is a model that utilizes Mistral, Llava, and StableDiffusionInpaintPipeline to replace a specified object in a given image with a new one. The class generates a new object and a prompt, and then replaces the specified object in the image with the new one.
+The BaselineAugmenterPipeline is a model that utilizes Mistral, Llava, and StableDiffusionInpaintPipeline to replace a specified object in a given image with a new one. The class generates a new object and a prompt, and then replaces the specified object in the image with the new one.
 
 Usage
 -----
