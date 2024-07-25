@@ -1,41 +1,80 @@
-Overview
---------
+# GenerativeAugmentations
 
-The BaselineAugmenterPipeline is a model that utilizes Mistral, Llava, and StableDiffusionInpaintPipeline to replace a specified object in a given image with a new one. The class generates a new object and a prompt, and then replaces the specified object in the image with the new one.
+Welcome to GenerativeAugmentations, a cutting-edge Python library designed for generative image augmentation! Our library includes the Augmenter model, which leverages advanced machine learning techniques to generate new objects and prompts, seamlessly replacing specified objects in images with new ones using PowerPaint.
 
-Usage
------
+## Get Started
 
-To use the AugmenterPipeline, first create an instance of the model with the desired device for model inference:
-```python
-augmenter = augmenter(device='cuda')
+```bash
+# Clone the Repository
+git clone https://github.com/DorinDaniil/augmenter_pipeline.git
+
+# Create Virtual Environment with Conda
+conda create --name genaug python=3.12
+conda activate genaug
+
+# Install Dependencies
+pip install -r requirements.txt
 ```
-Then, call the `__call__` method of the model to replace an object in the image:
-```python
-modified_image, new_object, prompt = augmenter(pil_image,
-                                               pil_mask,
-                                               current_object,
-                                               new_objects_list,
-                                               num_inference_steps,
-                                               guidance_scale,
-                                               return_prompt)
+To use the model download the PowerPaint v2-1 weights.
+```bash
+git lfs clone https://huggingface.co/JunhaoZhuang/PowerPaint-v2-1/ ./checkpoints/ppt-v2-1
 ```
-The `__call__` method takes the following parameters:
 
-* `pil_image` (Image.Image): The input image.
-* `pil_mask` (Image.Image): The mask of object to replace.
-* `current_object` (str): The name of the object to be replaced.
-* `new_objects_list` (Optional[List[str]]): A list of potential new objects. If None, the method will generate a new object.
-* `num_inference_steps` (int): The number of denoising steps. More steps mean a slower but potentially higher quality result.
-* `guidance_scale` (int): The scale for classifier-free guidance. Higher values lead to results that are more closely linked to the text prompt.
-* `return_prompt` (bool): If True, the method also returns the new object and the prompt used for generation.
+## Usage
 
-The `__call__` method returns a tuple containing the modified image and, optionally, the new object and the prompt used for generation.
+Here's a step-by-step guide on how to use the GenerativeAugmentations library to perform image augmentation:
 
-Note: The first time an instance of the AugmenterPipeline model is created, it will automatically download the necessary UNET model weights to the same directory as the model and load them during initialization.
+### Import the necessary modules
+
+```python
+from GenerativeAugmentations import Augmenter
+from PIL import Image
+```
+
+### Initialize the Augmenter class
+
+The Augmenter class is the main interface for performing image augmentation. You can initialize it with the device you want to use for computations, which defaults to "cuda".
+
+```python
+augmenter = Augmenter(device="cuda")
+```
+
+### Prepare your inputs
+
+You will need to provide the following inputs to the Augmenter:
+
+- `image`: The input image in PIL format.
+- `mask`: The mask of the object to replace in PIL format.
+- `current_object`: The name of the object to be replaced.
+- `new_objects_list` (optional): A list of potential new objects. If None, the method will generate a new object.
+- `ddim_steps` (optional): The number of denoising steps. More steps mean a slower but potentially higher quality result. Defaults to 50.
+- `guidance_scale` (optional): The scale for classifier-free guidance. Higher values lead to results that are more closely linked to the text prompt. Defaults to 5.
+- `seed` (optional): Integer value that initializes the random number generator for reproducibility. Defaults to 1.
+- `return_prompt` (optional): If True, the method also returns the prompt used for generation and the new object. Defaults to False.
+
+### Perform image augmentation
+
+You can perform image augmentation by calling the Augmenter instance with the prepared inputs:
+
+```python
+image = Image.open("path/to/your/image.jpg")
+mask = Image.open("path/to/your/mask.jpg")
+
+result, (prompt, new_object) = augmenter(
+    image=image,
+    mask=mask,
+    current_object=current_object,
+    new_objects_list=new_objects_list,
+    ddim_steps=50,
+    guidance_scale=5,
+    seed=1,
+    return_prompt=True
+)
+```
+
+The `result` variable will contain the modified image, prompt used for generation and the new object, respectively.
 
 Examples
 --------
-The experiments used the [PASCAL VOC 2007 dataset](http://host.robots.ox.ac.uk/pascal/VOC/voc2007/).
-For examples of how to use the AugmenterPipeline refer to the augmentation_experiments.ipynb
+For examples of how to use the GenerativeAugmentations refer to the example.ipynb
 
