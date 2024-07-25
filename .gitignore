@@ -122,8 +122,4 @@ logs/
 *.csv
 !.dvc
 
-unet/
-VOC2007/
-VOC2007_augmentation_only1obj/
-VOC2007_augmentation_pottedplant/
-VOC2007_augmentation_train/
+checkpoints/
