@@ -20,6 +20,13 @@ To use the model download the PowerPaint v2-1 weights.
 git lfs clone https://huggingface.co/JunhaoZhuang/PowerPaint-v2-1/ ./checkpoints/ppt-v2-1
 ```
 
+To use GroundedSAM follow the installation instructions [here](https://github.com/IDEA-Research/Grounded-Segment-Anything/tree/main)
+
+```
+cd GenerativeAugmentations/models
+git clone https://github.com/IDEA-Research/Grounded-Segment-Anything
+```
+
 ## Usage
 
 Here's a step-by-step guide on how to use the GenerativeAugmentations library to perform image augmentation:
