@@ -186,13 +186,10 @@ class GradioWindow():
                       current_object: str, new_objects_list: list,
                       ddim_steps: int, guidance_scale: int, seed: int) -> tuple:
         
-        print("SEGMENTATION MASK: ", self.masks.shape, type(self.masks), np.unique(self.masks))
-        image = Image.fromarray(image)
-        
-        self.masks = np.squeeze(self.masks.astype(np.uint8))
-        #self.masks = np.where(self.masks, 255, 0).astype(np.uint8)
+        self.masks = self.masks.astype(np.uint8) * 255
+        self.masks = np.squeeze(self.masks)
         self.masks = Image.fromarray(self.masks, mode='L')
-        print("SEGMENTATION MASK: ", self.masks.shape, type(self.masks), np.unique(self.masks))
+
         result, (prompt, new_object) = self.augmenter(
         image=image,
         mask=self.masks,
