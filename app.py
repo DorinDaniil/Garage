@@ -4,7 +4,9 @@ import torch
 import time
 from PIL import Image
 import gradio as gr
+
 from GenerativeAugmentations.models.GroundedSegmentAnything.segment_anything.segment_anything import SamPredictor, sam_model_registry
+from GenerativeAugmentations.models.GroundedSegmentAnything.GroundingDINO.groundingdino.util.inference import Model
 from GenerativeAugmentations import Augmenter
 
 MODEL_DICT = dict(
@@ -13,42 +15,49 @@ MODEL_DICT = dict(
     vit_b="https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth",  # yapf: disable  # noqa
 )
 
+GROUNDING_DINO_CONFIG_PATH = "GenerativeAugmentations/models/GroundedSegmentAnything/GroundingDINO_SwinT_OGC.py"
+GROUNDING_DINO_CHECKPOINT_PATH = "GenerativeAugmentations/models/GroundedSegmentAnything/groundingdino_swint_ogc.pth"
+SAM_CHECKPOINT_PATH = "GenerativeAugmentations/models/GroundedSegmentAnything/sam_vit_h_4b8939.pth"
+SAM_ENCODER_VERSION = "vit_h"
 
 class GradioWindow():
     def __init__(self) -> None:
         self.saved_points = []
         self.saved_labels = []
 
+        self.GROUNDING_DINO_CONFIG_PATH = GROUNDING_DINO_CONFIG_PATH
+        self.GROUNDING_DINO_CHECKPOINT_PATH = GROUNDING_DINO_CHECKPOINT_PATH
+        self.model_type = SAM_ENCODER_VERSION
+        self.SAM_CHECKPOINT_PATH = SAM_CHECKPOINT_PATH
+
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.model_type = "vit_b"
 
         self.augmenter = None
         # self.augmenter = Augmenter(device=self.device)
-        self.predictor = self.setup_model()
+        self.setup_model()
         self.main()
 
     def main(self):
         with gr.Blocks() as self.demo:
             with gr.Row():
-                input_img = gr.Image(label="Input", interactive=True)
-                segmented_img = gr.Image(label="Selected Segment")
+                with gr.Group():
+                    input_img = gr.Image(label="Input image", interactive=True)
+                    self.current_object = gr.Textbox(label="Current object", value="The running dog")
+                    with gr.Accordion("Advanced options", open=False):
+                        box_threshold = gr.Slider(minimum=0.0, maximum=1.0, value=0.25, label="Box threshold")
+                        text_threshold = gr.Slider(minimum=0.0, maximum=1.0, value=0.25, label="Text threshold")
 
-            with gr.Row():
-                with gr.Column(): 
+                    segment_object = gr.Button("Segment object")
+
+                with gr.Group():
+                    segmented_img = gr.Image(label="Selected Segment")
                     loading_status = gr.Markdown(
                         "<div class=\"message\" style=\"text-align: center; \
                             font-size: 24px;\">Please load image</div>", 
                         visible=True)
-                    mask_level = gr.Slider(
-                        minimum=0,
-                        maximum=2,
-                        value=1,
-                        step=1,
-                        label="Masking level",
-                        info="(Whole - Part - Subpart) level",
-                    )
-                    is_positive_box = gr.Checkbox(value=True, label="Positive point")
-                    self.current_object = gr.Textbox(label="Current object", value="cat")
+
+            with gr.Row():
+                with gr.Column(): 
                     self.target_object = gr.Textbox(label="Target object", value="dog")
 
                     self.iter_number = gr.Number(value=50, label="Steps")
@@ -63,16 +72,10 @@ class GradioWindow():
                     augmented_img = gr.Image(label="Augmented Image")
 
             # Connect the UI and logic
-            input_img.upload(
-                fn=self.set_image, 
-                inputs=[input_img],
-                outputs=[loading_status],
-                )
-
-            input_img.select(
-                self.segment_anything,
-                inputs=[input_img, mask_level, is_positive_box],
-                outputs=[segmented_img],
+            segment_object.click(
+                self.detect,
+                inputs=[input_img, self.current_object, box_threshold, text_threshold],
+                outputs=[segmented_img]
             )
 
             enter_prompt.click(
@@ -85,18 +88,41 @@ class GradioWindow():
             reset.click(self.reset_points)
 
     def setup_model(self) -> SamPredictor:
-        sam = sam_model_registry[self.model_type]()
-        sam.load_state_dict(torch.utils.model_zoo.load_url(MODEL_DICT[self.model_type]))
-        sam.to(device=self.device)
+        self.sam = sam_model_registry[self.model_type](checkpoint=self.SAM_CHECKPOINT_PATH)
+        # self.sam.load_state_dict(torch.utils.model_zoo.load_url(MODEL_DICT[self.model_type]))
+        self.sam.to(device=self.device)
+        self.sam_predictor = SamPredictor(self.sam)
 
-        return SamPredictor(sam)
-    
+        self.grounding_dino_model = Model(
+            model_config_path=self.GROUNDING_DINO_CONFIG_PATH, 
+            model_checkpoint_path=self.GROUNDING_DINO_CHECKPOINT_PATH, 
+            device=self.device
+            )
+
     def set_image(self, img) -> None:
         """Set the image for the predictor."""
         self.predictor.set_image(img)
         print("Image loaded!")
         return "<div class=\"message\" style=\"text-align: center; font-size: 24px;\">Image Loaded!</div>"
-        
+
+    def detect(self, image: Image, prompt: str, box_threshold: float, text_threshold: float):
+        detections = self.grounding_dino_model.predict_with_classes(
+            image=cv2.cvtColor(image, cv2.COLOR_BGR2RGB),
+            classes=[prompt],
+            box_threshold=box_threshold,
+            text_threshold=text_threshold,
+        )
+
+        detections.mask = self.segment(
+            sam_predictor=self.sam_predictor,
+            image=cv2.cvtColor(image, cv2.COLOR_BGR2RGB),
+            xyxy=detections.xyxy
+        )
+
+        mask = detections.mask[0]
+        res = self.show_mask(mask, image)
+        return res
+    
     def show_mask(self, mask: np.ndarray, image: np.ndarray, 
                   random_color: bool = False) -> np.ndarray:
         """Visualize a mask on top of an image.
@@ -140,32 +166,18 @@ class GradioWindow():
                 image, p.astype(int), radius=5, color=(255, 0, 0), thickness=-1
             )
         return image
-
-    def segment_anything(self, img, mask_level: int, is_positive: bool, evt: gr.SelectData):
-        """Segment the selected region."""
-        global masks
-        mask_level = 2 - mask_level
-        self.saved_points.append([evt.index[0], evt.index[1]])
-        self.saved_labels.append(1 if is_positive else 0)
-        input_point = np.array(self.saved_points)
-        input_label = np.array(self.saved_labels)
-
-        # Predict the mask
-        # with torch.amp.autocast(device_type=str(self.device)):
-        
-        masks, _, _ = self.predictor.predict(
-            point_coords=input_point,
-            point_labels=input_label,
-            multimask_output=True,
-        )
-
-        # mask has a shape of [3, h, w]
-        self.masks = masks[mask_level : mask_level + 1, ...]
-        print(self.masks.shape, type(self.masks), np.unique(self.masks))
-
-        res = self.show_mask(self.masks, img)
-        res = self.show_points(input_point, input_label, res)
-        return res
+    
+    def segment(self, sam_predictor: SamPredictor, image: np.ndarray, xyxy: np.ndarray) -> np.ndarray:
+        sam_predictor.set_image(image)
+        result_masks = []
+        for box in xyxy:
+            masks, scores, logits = sam_predictor.predict(
+                box=box,
+                multimask_output=True
+            )
+            index = np.argmax(scores)
+            result_masks.append(masks[index])
+        return np.array(result_masks)
 
     def sleep(self, input_img):
         original_img = input_img["background"]
@@ -194,6 +206,7 @@ class GradioWindow():
         seed=seed,
         return_prompt=True
         )
+
         return result
     
 if __name__ == "__main__":
