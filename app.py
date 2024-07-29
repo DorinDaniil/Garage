@@ -22,16 +22,16 @@ class GradioWindow():
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model_type = "vit_b"
 
-        self.augmenter = None
-        # self.augmenter = Augmenter(device=self.device)
+        #self.augmenter = None
+        self.augmenter = Augmenter(device=self.device)
         self.predictor = self.setup_model()
         self.main()
 
     def main(self):
         with gr.Blocks() as self.demo:
             with gr.Row():
-                input_img = gr.Image(label="Input", interactive=True)
-                segmented_img = gr.Image(label="Selected Segment")
+                input_img = gr.Image(type="pil", label="Input", interactive=True)
+                segmented_img = gr.Image(type="pil", label="Selected Segment")
 
             with gr.Row():
                 with gr.Column(): 
@@ -60,7 +60,7 @@ class GradioWindow():
                     reset = gr.Button("Reset Points")
 
                 with gr.Column():
-                    augmented_img = gr.Image(label="Augmented Image")
+                    augmented_img = gr.Image(type="pil",label="Augmented Image")
 
             # Connect the UI and logic
             input_img.upload(
@@ -93,6 +93,7 @@ class GradioWindow():
     
     def set_image(self, img) -> None:
         """Set the image for the predictor."""
+        img = np.array(img)
         self.predictor.set_image(img)
         print("Image loaded!")
         return "<div class=\"message\" style=\"text-align: center; font-size: 24px;\">Image Loaded!</div>"
@@ -115,6 +116,7 @@ class GradioWindow():
         h, w = mask.shape[-2:]
         mask_image = mask.reshape(h, w, 1) * color.reshape(1, 1, -1) * 255
 
+        image = np.array(image)
         image = cv2.addWeighted(image, 0.7, mask_image.astype("uint8"), 0.3, 0)
         return image
 
@@ -131,6 +133,7 @@ class GradioWindow():
         """
         pos_points = coords[labels == 1]
         neg_points = coords[labels == 0]
+        image = np.array(image)
         for p in pos_points:
             image = cv2.circle(
                 image, p.astype(int), radius=5, color=(0, 255, 0), thickness=-1
@@ -183,6 +186,12 @@ class GradioWindow():
                       current_object: str, new_objects_list: list,
                       ddim_steps: int, guidance_scale: int, seed: int) -> tuple:
         
+        print("SEGMENTATION MASK: ", self.masks.shape, type(self.masks), np.unique(self.masks))
+        image = Image.fromarray(image)
+        
+        self.masks = np.squeeze(self.masks.astype(np.uint8))
+        #self.masks = np.where(self.masks, 255, 0).astype(np.uint8)
+        self.masks = Image.fromarray(self.masks, mode='L')
         print("SEGMENTATION MASK: ", self.masks.shape, type(self.masks), np.unique(self.masks))
         result, (prompt, new_object) = self.augmenter(
         image=image,

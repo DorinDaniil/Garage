@@ -24,7 +24,7 @@ To use GroundedSAM follow the installation instructions [here](https://github.co
 
 ```
 cd GenerativeAugmentations/models
-git clone https://github.com/IDEA-Research/Grounded-Segment-Anything
+git clone https://github.com/IDEA-Research/Grounded-Segment-Anything GroundedSegmentAnything
 ```
 
 ## Usage
