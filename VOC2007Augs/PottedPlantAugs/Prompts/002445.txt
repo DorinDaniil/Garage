@@ -1,0 +1,1 @@
+Maintain focus on the realistic description of pottedplant: its shape, material, texture, soil condition, and possibly the plant's species inside it, all while excluding other unrelated factors.

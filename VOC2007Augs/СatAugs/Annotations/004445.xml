@@ -1,0 +1,33 @@
+<annotation>
+	<folder>VOC2007_cats</folder>
+	<filename>004445.jpg</filename>
+	<size>
+		<width>480</width>
+		<height>500</height>
+		<depth>3</depth>
+	</size>
+	<object>
+		<name>motorbike</name>
+		<pose>Rear</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>105</xmin>
+			<ymin>106</ymin>
+			<xmax>324</xmax>
+			<ymax>482</ymax>
+		</bndbox>
+	</object>
+	<object>
+		<name>cat</name>
+		<pose>Rear</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>137</xmin>
+			<ymin>51</ymin>
+			<xmax>395</xmax>
+			<ymax>442</ymax>
+		</bndbox>
+	</object>
+</annotation>

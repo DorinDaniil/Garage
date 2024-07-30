@@ -1,0 +1,21 @@
+<annotation>
+	<folder>VOC2007_pottedplant</folder>
+	<filename>003968.jpg</filename>
+	<size>
+		<width>500</width>
+		<height>168</height>
+		<depth>3</depth>
+	</size>
+	<object>
+		<name>pottedplant</name>
+		<pose>Right</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>26</xmin>
+			<ymin>5</ymin>
+			<xmax>486</xmax>
+			<ymax>140</ymax>
+		</bndbox>
+	</object>
+</annotation>

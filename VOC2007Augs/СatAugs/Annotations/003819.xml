@@ -1,0 +1,21 @@
+<annotation>
+	<folder>VOC2007_cats</folder>
+	<filename>003819.jpg</filename>
+	<size>
+		<width>361</width>
+		<height>500</height>
+		<depth>3</depth>
+	</size>
+	<object>
+		<name>cat</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>102</xmin>
+			<ymin>238</ymin>
+			<xmax>317</xmax>
+			<ymax>450</ymax>
+		</bndbox>
+	</object>
+</annotation>
