@@ -1,0 +1,33 @@
+<annotation>
+	<folder>VOC2007_cats</folder>
+	<filename>003660.jpg</filename>
+	<size>
+		<width>500</width>
+		<height>375</height>
+		<depth>3</depth>
+	</size>
+	<object>
+		<name>cat</name>
+		<pose>Frontal</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>1</xmin>
+			<ymin>199</ymin>
+			<xmax>65</xmax>
+			<ymax>301</ymax>
+		</bndbox>
+	</object>
+	<object>
+		<name>chair</name>
+		<pose>Frontal</pose>
+		<truncated>1</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>122</xmin>
+			<ymin>237</ymin>
+			<xmax>269</xmax>
+			<ymax>375</ymax>
+		</bndbox>
+	</object>
+</annotation>

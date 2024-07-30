@@ -1,0 +1,33 @@
+<annotation>
+	<folder>VOC2007_pottedplant</folder>
+	<filename>003977.jpg</filename>
+	<size>
+		<width>500</width>
+		<height>322</height>
+		<depth>3</depth>
+	</size>
+	<object>
+		<name>pottedplant</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>171</xmin>
+			<ymin>25</ymin>
+			<xmax>486</xmax>
+			<ymax>275</ymax>
+		</bndbox>
+	</object>
+	<object>
+		<name>train</name>
+		<pose>Frontal</pose>
+		<truncated>1</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>1</xmin>
+			<ymin>5</ymin>
+			<xmax>150</xmax>
+			<ymax>293</ymax>
+		</bndbox>
+	</object>
+</annotation>

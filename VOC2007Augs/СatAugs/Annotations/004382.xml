@@ -1,0 +1,33 @@
+<annotation>
+	<folder>VOC2007_cats</folder>
+	<filename>004382.jpg</filename>
+	<size>
+		<width>500</width>
+		<height>375</height>
+		<depth>3</depth>
+	</size>
+	<object>
+		<name>cat</name>
+		<pose>Unspecified</pose>
+		<truncated>1</truncated>
+		<difficult>1</difficult>
+		<bndbox>
+			<xmin>397</xmin>
+			<ymin>74</ymin>
+			<xmax>500</xmax>
+			<ymax>216</ymax>
+		</bndbox>
+	</object>
+	<object>
+		<name>bus</name>
+		<pose>Unspecified</pose>
+		<truncated>1</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>3</xmin>
+			<ymin>2</ymin>
+			<xmax>409</xmax>
+			<ymax>374</ymax>
+		</bndbox>
+	</object>
+</annotation>

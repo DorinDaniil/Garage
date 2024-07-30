@@ -1,0 +1,33 @@
+<annotation>
+	<folder>VOC2007_pottedplant</folder>
+	<filename>001528.jpg</filename>
+	<size>
+		<width>500</width>
+		<height>333</height>
+		<depth>3</depth>
+	</size>
+	<object>
+		<name>pottedplant</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>167</xmin>
+			<ymin>149</ymin>
+			<xmax>321</xmax>
+			<ymax>276</ymax>
+		</bndbox>
+	</object>
+	<object>
+		<name>car</name>
+		<pose>Unspecified</pose>
+		<truncated>1</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>327</xmin>
+			<ymin>227</ymin>
+			<xmax>474</xmax>
+			<ymax>269</ymax>
+		</bndbox>
+	</object>
+</annotation>

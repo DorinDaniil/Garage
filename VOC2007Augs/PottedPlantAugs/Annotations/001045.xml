@@ -1,0 +1,33 @@
+<annotation>
+	<folder>VOC2007_pottedplant</folder>
+	<filename>001045.jpg</filename>
+	<size>
+		<width>464</width>
+		<height>380</height>
+		<depth>3</depth>
+	</size>
+	<object>
+		<name>horse</name>
+		<pose>Right</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>51</xmin>
+			<ymin>54</ymin>
+			<xmax>369</xmax>
+			<ymax>371</ymax>
+		</bndbox>
+	</object>
+	<object>
+		<name>pottedplant</name>
+		<pose>Right</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>161</xmin>
+			<ymin>11</ymin>
+			<xmax>264</xmax>
+			<ymax>250</ymax>
+		</bndbox>
+	</object>
+</annotation>
