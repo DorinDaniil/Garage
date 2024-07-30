@@ -24,6 +24,13 @@ class GradioWindow():
     def __init__(self) -> None:
         self.saved_points = []
         self.saved_labels = []
+        self.examples_masks = {
+            0: ["dog", "examples/dog_mask.jpg"],
+            1: ["bread", "examples/bread_mask.jpg"],
+            2: ["room", "examples/room_mask.jpg"],
+            3: ["spoon", "examples/spoon_mask.jpg"],
+            4: ["cat", "examples/image_mask.jpg"], 
+        }
 
         self.GROUNDING_DINO_CONFIG_PATH = GROUNDING_DINO_CONFIG_PATH
         self.GROUNDING_DINO_CHECKPOINT_PATH = GROUNDING_DINO_CHECKPOINT_PATH
@@ -31,9 +38,9 @@ class GradioWindow():
         self.SAM_CHECKPOINT_PATH = SAM_CHECKPOINT_PATH
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-        self.augmenter = None
-        # self.augmenter = Augmenter(device=self.device)
+        ## for debug
+        # self.augmenter = None
+        self.augmenter = Augmenter(device=self.device)
         self.setup_model()
         self.main()
 
@@ -46,6 +53,11 @@ class GradioWindow():
 
             with gr.Row():
                 with gr.Group():
+                    segmentation_text = gr.Markdown(
+                        "## Grounded Segmentation\n"
+                        "#### This tool segments the object in the image based on the text prompt via GroundedSAM model. "
+                        "You can also load the mask of the object to segment or choose one of the examples below.\n"
+                    )
                     self.current_object = gr.Textbox(label="Current object", value="The running dog")
                     with gr.Accordion("Advanced options", open=False):
                         box_threshold = gr.Slider(minimum=0.0, maximum=1.0, value=0.25, label="Box threshold")
@@ -69,15 +81,15 @@ class GradioWindow():
                     gr.Examples(
                         label="Mask Examples",
                         examples=[
-                        ["examples/dog_mask.jpg"],
-                        ["examples/bread_mask.jpg"],
-                        ["examples/room_mask.jpg"],
-                        ["examples/spoon_mask.jpg"],
-                        ["examples/image_mask.jpg"], 
+                        [self.examples_masks[0][1]],
+                        [self.examples_masks[1][1]],
+                        [self.examples_masks[2][1]],
+                        [self.examples_masks[3][1]],
+                        [self.examples_masks[4][1]], 
                         ], 
                         inputs=[selected_mask, input_img],    
                         outputs=[segmented_img],
-                        fn=self.show_mask,
+                        fn=self.set_mask,
                         run_on_click=True
                     )
 
@@ -125,6 +137,18 @@ class GradioWindow():
             model_checkpoint_path=self.GROUNDING_DINO_CHECKPOINT_PATH, 
             device=self.device
             )
+
+    def set_mask(self, mask: Image, image: Image):
+        self.mask = mask
+
+        for key, value in self.examples_masks.items():
+            m = Image.open(value[1])
+            if np.array_equal(np.array(m), np.array(mask)):
+                self.current_object = value[0]
+                break
+
+        res = self.show_mask(mask, image)
+        return res
 
     def detect(self, image: Image, prompt: str, box_threshold: float, text_threshold: float):
         detections = self.grounding_dino_model.predict_with_classes(
@@ -207,24 +231,28 @@ class GradioWindow():
             result_masks.append(masks[index])
         return np.array(result_masks)
 
-    def augment_image(self, image: np.array, 
-                      current_object: str, new_objects_list: list,
+    def augment_image(self, image: Image, 
+                      current_object: str, new_objects_list: str,
                       ddim_steps: int, guidance_scale: int, seed: int, return_prompt: str) -> tuple:
         
-        print("SEGMENTATION MASK: ", self.mask.shape, type(self.mask), np.unique(self.mask))
-        # result, (prompt, new_object) = self.augmenter(
-        # image=image,
-        # mask=self.mask,
-        # current_object=current_object,
-        # new_objects_list=new_objects_list,
-        # ddim_steps=ddim_steps,
-        # guidance_scale=guidance_scale,
-        # seed=seed,
-        # return_prompt=return_prompt
-        # )
+        self.masks = np.array(self.mask)
+        self.masks = np.any(self.masks, axis=2).astype(np.uint8)
+        self.masks = Image.fromarray(self.masks, mode='L')
+        
+        result, (prompt, new_object) = self.augmenter(
+        image=image,
+        mask=self.mask,
+        current_object=current_object,
+        new_objects_list=[new_objects_list],
+        ddim_steps=ddim_steps,
+        guidance_scale=guidance_scale,
+        seed=seed,
+        return_prompt=return_prompt
+        )
 
-        result = None
-        prompt = "exex" 
+        # for debug
+        # result = None
+        # prompt = "exex" 
         
         if not return_prompt:
             prompt = ""
