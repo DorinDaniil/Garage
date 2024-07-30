@@ -40,56 +40,83 @@ class GradioWindow():
     def main(self):
         with gr.Blocks() as self.demo:
             with gr.Row():
+                input_img = gr.Image(type="pil", label="Input image", interactive=True)
+                selected_mask = gr.Image(type="pil", label="Selected Mak")
+                segmented_img = gr.Image(type="pil", label="Selected Segment")
+
+            with gr.Row():
                 with gr.Group():
-                    input_img = gr.Image(label="Input image", interactive=True)
                     self.current_object = gr.Textbox(label="Current object", value="The running dog")
                     with gr.Accordion("Advanced options", open=False):
                         box_threshold = gr.Slider(minimum=0.0, maximum=1.0, value=0.25, label="Box threshold")
                         text_threshold = gr.Slider(minimum=0.0, maximum=1.0, value=0.25, label="Text threshold")
 
                     segment_object = gr.Button("Segment object")
-
-                with gr.Group():
-                    segmented_img = gr.Image(label="Selected Segment")
-                    loading_status = gr.Markdown(
-                        "<div class=\"message\" style=\"text-align: center; \
-                            font-size: 24px;\">Please load image</div>", 
-                        visible=True)
+                
+                with gr.Column(): 
+                    gr.Examples(
+                        label="Images Examples",
+                        examples=[
+                        ["examples/dog.jpg"],
+                        ["examples/bread.png"],
+                        ["examples/room.jpg"],
+                        ["examples/spoon.png"],
+                        ["examples/image.jpg"], 
+                        ], 
+                        inputs=[input_img],
+                        examples_per_page=5      
+                    )
+                    gr.Examples(
+                        label="Mask Examples",
+                        examples=[
+                        ["examples/dog_mask.jpg"],
+                        ["examples/bread_mask.jpg"],
+                        ["examples/room_mask.jpg"],
+                        ["examples/spoon_mask.jpg"],
+                        ["examples/image_mask.jpg"], 
+                        ], 
+                        inputs=[selected_mask, input_img],    
+                        outputs=[segmented_img],
+                        fn=self.show_mask,
+                        run_on_click=True
+                    )
 
             with gr.Row():
                 with gr.Column(): 
-                    self.target_object = gr.Textbox(label="Target object", value="dog")
+                    with gr.Group():
+                        self.target_object = gr.Textbox(label="Target object", value="dog")
 
-                    self.iter_number = gr.Number(value=50, label="Steps")
-                    self.guidance_scale = gr.Number(value=5, label="Guidance Scale")
-                    self.seed = gr.Number(value=1, label="Seed")
+                        with gr.Accordion("Generation options", open=False):
+                            self.iter_number = gr.Number(value=50, label="Steps")
+                            self.guidance_scale = gr.Number(value=5, label="Guidance Scale")
+                            self.seed = gr.Number(value=1, label="Seed")
+                            self.return_prompt = gr.Checkbox(value=True, label="Show generated prompt")
 
-                    enter_prompt = gr.Button("Augment Image")
-                    
-                    reset = gr.Button("Reset Points")
+                        enter_prompt = gr.Button("Augment Image")
 
                 with gr.Column():
-                    augmented_img = gr.Image(label="Augmented Image")
+                    augmented_img = gr.Image(type="pil", label="Augmented Image")
+                    generated_prompt = gr.Markdown(
+                            f"<div class=\"message\" style=\"text-align: center; \
+                                font-size: 18px;\"></div>", 
+                            visible=True)
 
             # Connect the UI and logic
             segment_object.click(
                 self.detect,
                 inputs=[input_img, self.current_object, box_threshold, text_threshold],
-                outputs=[segmented_img]
+                outputs=[segmented_img, selected_mask]
             )
 
             enter_prompt.click(
                 self.augment_image,
                 inputs=[input_img, self.current_object, self.target_object, 
-                        self.iter_number, self.guidance_scale, self.seed],
-                outputs=[augmented_img],
+                        self.iter_number, self.guidance_scale, self.seed, self.return_prompt],
+                outputs=[augmented_img, generated_prompt],
             )
-
-            reset.click(self.reset_points)
 
     def setup_model(self) -> SamPredictor:
         self.sam = sam_model_registry[self.model_type](checkpoint=self.SAM_CHECKPOINT_PATH)
-        # self.sam.load_state_dict(torch.utils.model_zoo.load_url(MODEL_DICT[self.model_type]))
         self.sam.to(device=self.device)
         self.sam_predictor = SamPredictor(self.sam)
 
@@ -99,15 +126,9 @@ class GradioWindow():
             device=self.device
             )
 
-    def set_image(self, img) -> None:
-        """Set the image for the predictor."""
-        self.predictor.set_image(img)
-        print("Image loaded!")
-        return "<div class=\"message\" style=\"text-align: center; font-size: 24px;\">Image Loaded!</div>"
-
     def detect(self, image: Image, prompt: str, box_threshold: float, text_threshold: float):
         detections = self.grounding_dino_model.predict_with_classes(
-            image=cv2.cvtColor(image, cv2.COLOR_BGR2RGB),
+            image=cv2.cvtColor(np.array(image), cv2.COLOR_BGR2RGB),
             classes=[prompt],
             box_threshold=box_threshold,
             text_threshold=text_threshold,
@@ -115,20 +136,20 @@ class GradioWindow():
 
         detections.mask = self.segment(
             sam_predictor=self.sam_predictor,
-            image=cv2.cvtColor(image, cv2.COLOR_BGR2RGB),
+            image=cv2.cvtColor(np.array(image), cv2.COLOR_BGR2RGB),
             xyxy=detections.xyxy
         )
 
-        mask = detections.mask[0]
+        mask = Image.fromarray(detections.mask[0])
         res = self.show_mask(mask, image)
-        return res
+        return res, mask
     
-    def show_mask(self, mask: np.ndarray, image: np.ndarray, 
+    def show_mask(self, mask: Image, image: Image, 
                   random_color: bool = False) -> np.ndarray:
         """Visualize a mask on top of an image.
         Args:
-            mask (np.ndarray): A 2D array of shape (H, W).
-            image (np.ndarray): A 3D array of shape (H, W, 3).
+            mask (Image): A 2D array of shape (H, W, 3).
+            image (Image): A 3D array of shape (H, W, 3).
             random_color (bool): Whether to use a random color for the mask.
         Returns:
             np.ndarray: A 3D array of shape (H, W, 3) with the mask
@@ -138,14 +159,20 @@ class GradioWindow():
             color = np.concatenate([np.random.random(3)], axis=0)
         else:
             color = np.array([30 / 255, 144 / 255, 255 / 255])
+        
+        mask, image = np.array(mask.convert('L')), np.array(image)
+        mask = np.where(mask > 200, 1, 0).astype(np.uint8)
+
+        target_size = (image.shape[1], image.shape[0])  # width, height
+        mask = cv2.resize(mask, target_size, interpolation=cv2.INTER_NEAREST)
+    
         h, w = mask.shape[-2:]
         mask_image = mask.reshape(h, w, 1) * color.reshape(1, 1, -1) * 255
-
         image = cv2.addWeighted(image, 0.7, mask_image.astype("uint8"), 0.3, 0)
         return image
 
     def show_points(self, coords: np.ndarray, 
-                    labels: np.ndarray, image: np.ndarray) -> np.ndarray:
+                    labels: np.ndarray, image: Image) -> np.ndarray:
         """Visualize points on top of an image.
         Args:
             coords (np.ndarray): A 2D array of shape (N, 2).
@@ -157,6 +184,7 @@ class GradioWindow():
         """
         pos_points = coords[labels == 1]
         neg_points = coords[labels == 0]
+        image = np.array(image)
         for p in pos_points:
             image = cv2.circle(
                 image, p.astype(int), radius=5, color=(0, 255, 0), thickness=-1
@@ -179,35 +207,32 @@ class GradioWindow():
             result_masks.append(masks[index])
         return np.array(result_masks)
 
-    def sleep(self, input_img):
-        original_img = input_img["background"]
-        mask = input_img["layers"][0]
-        mask = np.array(Image.fromarray(np.uint8(mask)).convert("L"))
-        masks = np.where(mask != 0, 255, 0)
-        return [original_img, masks, input_img["composite"]]
-
-    def reset_points(self) -> None:
-        """Reset the points."""
-        self.saved_points = []
-        self.saved_labels = []
-
     def augment_image(self, image: np.array, 
                       current_object: str, new_objects_list: list,
-                      ddim_steps: int, guidance_scale: int, seed: int) -> tuple:
+                      ddim_steps: int, guidance_scale: int, seed: int, return_prompt: str) -> tuple:
         
-        print("SEGMENTATION MASK: ", self.masks.shape, type(self.masks), np.unique(self.masks))
-        result, (prompt, new_object) = self.augmenter(
-        image=image,
-        mask=self.masks,
-        current_object=current_object,
-        new_objects_list=new_objects_list,
-        ddim_steps=ddim_steps,
-        guidance_scale=guidance_scale,
-        seed=seed,
-        return_prompt=True
-        )
+        print("SEGMENTATION MASK: ", self.mask.shape, type(self.mask), np.unique(self.mask))
+        # result, (prompt, new_object) = self.augmenter(
+        # image=image,
+        # mask=self.mask,
+        # current_object=current_object,
+        # new_objects_list=new_objects_list,
+        # ddim_steps=ddim_steps,
+        # guidance_scale=guidance_scale,
+        # seed=seed,
+        # return_prompt=return_prompt
+        # )
 
-        return result
+        result = None
+        prompt = "exex" 
+        
+        if not return_prompt:
+            prompt = ""
+
+        prompt_message = f"<div class=\"message\" style=\"text-align: center; \
+                                font-size: 18px;\">Generated prompt: {prompt}</div>"
+        return result, prompt_message
+    
     
 if __name__ == "__main__":
     window = GradioWindow()
