@@ -1,1 +1,0 @@
-Maintain realism with the pottedplant depiction by detailing its pot, shape, foliage texture, and plant species in a concise manner, while excluding extra surroundings information.

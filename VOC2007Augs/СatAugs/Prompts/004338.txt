@@ -1,1 +1,0 @@
-Maintain a simple visual representation of a cat, detailing its fur pattern and coat length, possibly mentioning notable markings or unique features, as well as a hint about its stance or gaze direction.

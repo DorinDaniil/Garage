@@ -1,1 +1,0 @@
-Mimic a simple and direct representation of the pottedplant's look, noting its container, shape, plant species, colors, texture, pot placement, or any unique characteristic within the context of plant aesthetics.
