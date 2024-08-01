@@ -57,6 +57,10 @@ USER ${UID}:${GID}
 
 ENV PATH="/home/${USER}/.local/bin:$PATH"
 
+# download weights
+RUN wget -O /home/${USER}/augmenter_pipeline/sam_vit_h_4b8939.pth https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth
+RUN wget -O /home/${USER}/augmenter_pipeline/groundingdino_swint_ogc.pth https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alpha/groundingdino_swint_ogc.pth
+
 # create venv
 ENV VIRTUAL_ENV="/home/${USER}/.venv"
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"

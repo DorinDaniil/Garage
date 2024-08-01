@@ -17,8 +17,8 @@ MODEL_DICT = dict(
 )
 
 GROUNDING_DINO_CONFIG_PATH = "GenerativeAugmentations/models/GroundedSegmentAnything/GroundingDINO_SwinT_OGC.py"
-GROUNDING_DINO_CHECKPOINT_PATH = "GenerativeAugmentations/models/GroundedSegmentAnything/groundingdino_swint_ogc.pth"
-SAM_CHECKPOINT_PATH = "GenerativeAugmentations/models/GroundedSegmentAnything/sam_vit_h_4b8939.pth"
+GROUNDING_DINO_CHECKPOINT_PATH = "groundingdino_swint_ogc.pth"
+SAM_CHECKPOINT_PATH = "sam_vit_h_4b8939.pth"
 SAM_ENCODER_VERSION = "vit_h"
 
 class GradioWindow():
@@ -41,8 +41,8 @@ class GradioWindow():
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         # for debug
-        self.augmenter = None
-        # self.augmenter = Augmenter(device=self.device)
+        # self.augmenter = None
+        self.augmenter = Augmenter(device=self.device)
         self.setup_model()
         self.main()
 
@@ -265,20 +265,24 @@ class GradioWindow():
         else:
             mask = self.mask[np.random.choice(len(self.mask))]
 
-        # result, (prompt, new_object) = self.augmenter(
-        # image=image,
-        # mask=mask,
-        # current_object=current_object,
-        # new_objects_list=[new_objects_list],
-        # ddim_steps=ddim_steps,
-        # guidance_scale=guidance_scale,
-        # seed=seed,
-        # return_prompt=return_prompt
-        # )
+        mask = mask.astype(np.uint8) * 255
+        mask = np.squeeze(mask)
+        mask = Image.fromarray(mask, mode='L')
 
-        # for debug
-        result = mask
-        prompt = "just mask" 
+        result, (prompt, new_object) = self.augmenter(
+        image=image,
+        mask=mask,
+        current_object=current_object,
+        new_objects_list=[new_objects_list],
+        ddim_steps=ddim_steps,
+        guidance_scale=guidance_scale,
+        seed=seed,
+        return_prompt=return_prompt
+        )
+
+        # # for debug
+        # result = mask
+        # prompt = "just mask" 
         
         if not return_prompt:
             prompt = ""
