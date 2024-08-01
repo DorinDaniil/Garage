@@ -41,8 +41,8 @@ class GradioWindow():
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         # for debug
-        # self.augmenter = None
-        self.augmenter = Augmenter(device=self.device)
+        self.augmenter = None
+        # self.augmenter = Augmenter(device=self.device)
         self.setup_model()
         self.main()
 
@@ -50,7 +50,7 @@ class GradioWindow():
         with gr.Blocks() as self.demo:
             with gr.Row():
                 input_img = gr.Image(type="pil", label="Input image", interactive=True)
-                selected_mask = gr.Image(type="pil", label="Selected Mak")
+                selected_mask = gr.Image(type="pil", label="Selected Mask")
                 segmented_img = gr.Image(type="pil", label="Selected Segment")
 
             with gr.Row():
@@ -265,20 +265,20 @@ class GradioWindow():
         else:
             mask = self.mask[np.random.choice(len(self.mask))]
 
-        result, (prompt, new_object) = self.augmenter(
-        image=image,
-        mask=mask,
-        current_object=current_object,
-        new_objects_list=[new_objects_list],
-        ddim_steps=ddim_steps,
-        guidance_scale=guidance_scale,
-        seed=seed,
-        return_prompt=return_prompt
-        )
+        # result, (prompt, new_object) = self.augmenter(
+        # image=image,
+        # mask=mask,
+        # current_object=current_object,
+        # new_objects_list=[new_objects_list],
+        # ddim_steps=ddim_steps,
+        # guidance_scale=guidance_scale,
+        # seed=seed,
+        # return_prompt=return_prompt
+        # )
 
-        # # for debug
-        # result = mask
-        # prompt = "just mask" 
+        # for debug
+        result = mask
+        prompt = "just mask" 
         
         if not return_prompt:
             prompt = ""

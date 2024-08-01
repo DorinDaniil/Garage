@@ -27,6 +27,20 @@ cd GenerativeAugmentations/models
 git clone https://github.com/IDEA-Research/Grounded-Segment-Anything
 ```
 
+### Use Docker
+To start with Docker run following commands:
+```
+# build image
+docker build -t augmenter-app .
+
+# run container
+docker run -it -d -p 7860:7860 --rm --name augmenter augmenter-app
+
+# get into running container
+docker exec -u 0 -it augmenter /bin/bash 
+cd augmenter_pipeline
+```
+
 ## Usage
 
 Here's a step-by-step guide on how to use the GenerativeAugmentations library to perform image augmentation:
