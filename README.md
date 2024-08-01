@@ -82,6 +82,15 @@ result, (prompt, new_object) = augmenter(
 The `result` variable will contain the modified image, prompt used for generation and the new object, respectively.
 
 ### Examples
---------
+
 For examples of how to use the GenerativeAugmentations refer to the example.ipynb
+
+## Download augmented datasets
+
+To download the [VOC2007 augmentations](https://huggingface.co/datasets/danulkin/VOC2007Augs), follow the instructions:
+```python
+from huggingface_hub import snapshot_download
+
+snapshot_download(repo_id="danulkin/VOC2007Augs", repo_type="dataset", local_dir = "./VOC2007Augs")
+```
 
