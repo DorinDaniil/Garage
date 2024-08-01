@@ -81,7 +81,7 @@ result, (prompt, new_object) = augmenter(
 
 The `result` variable will contain the modified image, prompt used for generation and the new object, respectively.
 
-Examples
+### Examples
 --------
 For examples of how to use the GenerativeAugmentations refer to the example.ipynb
 
