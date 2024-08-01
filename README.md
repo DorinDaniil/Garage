@@ -38,7 +38,7 @@ docker run -it -d -p 7860:7860 --rm --name augmenter augmenter-app
 
 # get into running container
 docker exec -u 0 -it augmenter /bin/bash 
-cd augmenter_pipeline
+cd augmenter_pipeline 
 ```
 
 ## Usage
