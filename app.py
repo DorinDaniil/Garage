@@ -32,9 +32,9 @@ class GradioWindow():
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        self.augmenter = None
-        # self.augmenter = Augmenter(device=self.device)
-        self.setup_model()
+        #self.augmenter = None
+        self.augmenter = Augmenter(device=self.device)
+        self.predictor = self.setup_model()
         self.main()
 
     def main(self):
@@ -211,28 +211,21 @@ class GradioWindow():
                       current_object: str, new_objects_list: list,
                       ddim_steps: int, guidance_scale: int, seed: int, return_prompt: str) -> tuple:
         
-        print("SEGMENTATION MASK: ", self.mask.shape, type(self.mask), np.unique(self.mask))
-        # result, (prompt, new_object) = self.augmenter(
-        # image=image,
-        # mask=self.mask,
-        # current_object=current_object,
-        # new_objects_list=new_objects_list,
-        # ddim_steps=ddim_steps,
-        # guidance_scale=guidance_scale,
-        # seed=seed,
-        # return_prompt=return_prompt
-        # )
+        self.masks = self.masks.astype(np.uint8) * 255
+        self.masks = np.squeeze(self.masks)
+        self.masks = Image.fromarray(self.masks, mode='L')
 
-        result = None
-        prompt = "exex" 
-        
-        if not return_prompt:
-            prompt = ""
-
-        prompt_message = f"<div class=\"message\" style=\"text-align: center; \
-                                font-size: 18px;\">Generated prompt: {prompt}</div>"
-        return result, prompt_message
-    
+        result, (prompt, new_object) = self.augmenter(
+        image=image,
+        mask=self.masks,
+        current_object=current_object,
+        new_objects_list=new_objects_list,
+        ddim_steps=ddim_steps,
+        guidance_scale=guidance_scale,
+        seed=seed,
+        return_prompt=True
+        )
+        return result
     
 if __name__ == "__main__":
     window = GradioWindow()

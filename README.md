@@ -6,7 +6,7 @@ Welcome to GenerativeAugmentations, a cutting-edge Python library designed for g
 
 ```bash
 # Clone the Repository
-git clone https://github.com/DorinDaniil/augmenter_pipeline.git
+git clone https://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@github.com/DorinDaniil/augmenter_pipeline.git
 
 # Create Virtual Environment with Conda
 conda create --name genaug python=3.12
@@ -24,7 +24,7 @@ To use GroundedSAM follow the installation instructions [here](https://github.co
 
 ```
 cd GenerativeAugmentations/models
-git clone https://github.com/IDEA-Research/Grounded-Segment-Anything
+git clone https://github.com/IDEA-Research/Grounded-Segment-Anything GroundedSegmentAnything
 ```
 
 ## Usage
@@ -81,7 +81,16 @@ result, (prompt, new_object) = augmenter(
 
 The `result` variable will contain the modified image, prompt used for generation and the new object, respectively.
 
-Examples
---------
+### Examples
+
 For examples of how to use the GenerativeAugmentations refer to the example.ipynb
+
+## Download augmented datasets
+
+To download the [VOC2007 augmentations](https://huggingface.co/datasets/danulkin/VOC2007Augs), follow the instructions:
+```python
+from huggingface_hub import snapshot_download
+
+snapshot_download(repo_id="danulkin/VOC2007Augs", repo_type="dataset", local_dir = "./VOC2007Augs")
+```
 

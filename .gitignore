@@ -123,5 +123,9 @@ logs/
 !.dvc
 
 checkpoints/
+<<<<<<< HEAD
 *.pth
 GenerativeAugmentations/models/GroundedSegmentAnything
+=======
+VOC2007Augs/
+>>>>>>> 93f681820842786bfaa0759b265a8a0970b2fa35
