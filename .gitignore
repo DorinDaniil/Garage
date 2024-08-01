@@ -123,3 +123,4 @@ logs/
 !.dvc
 
 checkpoints/
+VOC2007Augs/
