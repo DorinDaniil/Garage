@@ -1,4 +1,13 @@
-FROM nvcr.io/nvidia/cuda:12.3.2-devel-ubuntu20.04
+FROM pytorch/pytorch:1.13.1-cuda11.6-cudnn8-devel
+
+# Arguments to build Docker Image using CUDA
+ARG USE_CUDA=0
+ARG TORCH_ARCH=
+
+ENV AM_I_DOCKER True
+ENV BUILD_WITH_CUDA "${USE_CUDA}"
+ENV TORCH_CUDA_ARCH_LIST "${TORCH_ARCH}"
+ENV CUDA_HOME /usr/local/cuda-11.6/
 
 ENV DEBIAN_FRONTEND noninteractive
 
@@ -56,6 +65,12 @@ COPY . /home/${USER}/augmenter_pipeline
 USER ${UID}:${GID}
 
 ENV PATH="/home/${USER}/.local/bin:$PATH"
+
+RUN python -m pip install --no-cache-dir -e /home/${USER}/augmenter_pipeline/GenerativeAugmentations/models/GroundedSegmentAnything/segment_anything
+
+# When using build isolation, PyTorch with newer CUDA is installed and can't compile GroundingDINO
+RUN python -m pip install --no-cache-dir wheel
+RUN python -m pip install --no-cache-dir --no-build-isolation -e /home/${USER}/augmenter_pipeline/GenerativeAugmentations/models/GroundedSegmentAnything/GroundingDINO
 
 # download weights
 RUN wget -O /home/${USER}/augmenter_pipeline/sam_vit_h_4b8939.pth https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth
