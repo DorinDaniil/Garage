@@ -90,13 +90,13 @@ sympy==1.13.1
 termcolor==2.4.0
 tifffile==2024.7.24
 timm==1.0.8
-tokenizers==0.13.3
+tokenizers==0.19.1
 tomli==2.0.1
 toolz==0.12.1
 torch==2.4.0
 torchvision==0.19.0
 tqdm==4.66.4
-transformers==4.28.0
+transformers==4.43.3
 triton==3.0.0
 typing_extensions==4.12.2
 tzdata==2024.1
