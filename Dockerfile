@@ -33,7 +33,7 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     zlib1g-dev \
     libbz2-dev \
     libreadline-dev \
-    libsqlite3-dev\
+    libsqlite3-dev \
     libncursesw5-dev \
     xz-utils \
     tk-dev \
@@ -62,25 +62,33 @@ WORKDIR /home/${USER}
 RUN mkdir augmenter_pipeline && chown -R ${UID}:${GID} /home/${USER}
 COPY . /home/${USER}/augmenter_pipeline
 
+USER root
+
+# Ensure proper permissions for the augmenter_pipeline directory
+RUN chown -R ${UID}:${GID} /home/${USER}/augmenter_pipeline
+RUN chmod -R u+w /home/${USER}/augmenter_pipeline
+
 USER ${UID}:${GID}
 
 ENV PATH="/home/${USER}/.local/bin:$PATH"
 
-RUN python -m pip install --no-cache-dir -e /home/${USER}/augmenter_pipeline/GenerativeAugmentations/models/GroundedSegmentAnything/segment_anything
-
-# When using build isolation, PyTorch with newer CUDA is installed and can't compile GroundingDINO
-RUN python -m pip install --no-cache-dir wheel
-RUN python -m pip install --no-cache-dir --no-build-isolation -e /home/${USER}/augmenter_pipeline/GenerativeAugmentations/models/GroundedSegmentAnything/GroundingDINO
+# Configure Git to trust the repository's directory
+RUN git config --global --add safe.directory /home/${USER}/augmenter_pipeline
 
 # download weights
 RUN wget -O /home/${USER}/augmenter_pipeline/sam_vit_h_4b8939.pth https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth
 RUN wget -O /home/${USER}/augmenter_pipeline/groundingdino_swint_ogc.pth https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alpha/groundingdino_swint_ogc.pth
 
+# install models for segmentation
+RUN python -m pip install --no-cache-dir -e /home/${USER}/augmenter_pipeline/GenerativeAugmentations/models/GroundedSegmentAnything/segment_anything
+# When using build isolation, PyTorch with newer CUDA is installed and can't compile GroundingDINO
+RUN python -m pip install --no-cache-dir wheel
+RUN python -m pip install --no-cache-dir --no-build-isolation -e /home/${USER}/augmenter_pipeline/GenerativeAugmentations/models/GroundedSegmentAnything/GroundingDINO
+
 # create venv
 ENV VIRTUAL_ENV="/home/${USER}/.venv"
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 RUN python -m venv $VIRTUAL_ENV
-
 
 COPY requirements.txt /tmp/requirements.txt
 RUN python3 -m pip install -r /tmp/requirements.txt
@@ -92,4 +100,3 @@ RUN pip install pip==${PIP_VERSION} setuptools==${SETUPTOOLS_VERSION}
 
 EXPOSE 7860
 ENV GRADIO_SERVER_NAME="0.0.0.0"
-
