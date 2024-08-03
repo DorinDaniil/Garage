@@ -265,7 +265,7 @@ class GradioWindow():
         else:
             mask = self.mask[np.random.choice(len(self.mask))]
 
-        mask = mask.astype(np.uint8) * 255
+        mask = np.array(mask).astype(np.uint8) * 255
         mask = np.squeeze(mask)
         mask = Image.fromarray(mask, mode='L')
 
