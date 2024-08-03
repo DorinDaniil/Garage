@@ -68,6 +68,12 @@ class Augmenter:
         Tuple[Image.Image, Optional[Tuple[str, str]]]: The modified image and, optionally, the prompt used for generation and the new object.
         """
         self._set_seed(seed)
+        if image.mode == 'L': 
+            image = image.convert('RGB') 
+ 
+        if mask.mode == 'RGB': 
+            mask = mask.convert('L')
+
         image_description = self._models["LLaVA"].generate_image_description(image)
         prompt, new_object = self._models["Mistral"].generate_prompt(current_object, image_description, new_objects_list)
         
@@ -77,6 +83,7 @@ class Augmenter:
                                             prompt=prompt,
                                             fitting_degree=1.0,
                                             ddim_steps=ddim_steps,
+                                            seed=seed,
                                             scale=guidance_scale)
         if return_prompt:
             return result, (prompt, new_object)

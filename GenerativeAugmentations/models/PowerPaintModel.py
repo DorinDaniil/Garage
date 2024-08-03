@@ -100,6 +100,7 @@ class PowerPaintModel:
         prompt: str,
         fitting_degree: float,
         ddim_steps: int,
+        seed: int,
         scale: float) -> Image.Image:
         """
         Makes a prediction using the PowerPaint model.
@@ -151,7 +152,7 @@ class PowerPaintModel:
             image=Image.fromarray(np_inpimg.astype(np.uint8)).convert("RGB").convert("RGB"),
             mask=input_image["mask"].convert("RGB"),
             num_inference_steps=ddim_steps,
-            generator=torch.Generator("cuda"),
+            generator=torch.Generator("cuda").manual_seed(seed),
             brushnet_conditioning_scale=1.0,
             negative_promptA=negative_promptA,
             negative_promptB=negative_promptB,
