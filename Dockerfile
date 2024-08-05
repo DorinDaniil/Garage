@@ -76,6 +76,7 @@ ENV PATH="/home/${USER}/.local/bin:$PATH"
 RUN git config --global --add safe.directory /home/${USER}/augmenter_pipeline
 
 # download weights
+RUN git lfs clone https://huggingface.co/JunhaoZhuang/PowerPaint-v2-1/ /home/${USER}/augmenter_pipeline/checkpoints/ppt-v2-1
 RUN wget -O /home/${USER}/augmenter_pipeline/sam_vit_h_4b8939.pth https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth
 RUN wget -O /home/${USER}/augmenter_pipeline/groundingdino_swint_ogc.pth https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alpha/groundingdino_swint_ogc.pth
 
