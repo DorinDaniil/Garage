@@ -24,9 +24,9 @@ class MistralModel:
         model_name (str): The name of the model. Defaults to "Intel/neural-chat-7b-v3-1".
         """
         self.device = torch.device(device)
-        self.model = transformers.AutoModelForCausalLM.from_pretrained(model_name)
+        self.model = transformers.AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.float16)
         self.model = self.model.to(self.device)
-        self.tokenizer = transformers.AutoTokenizer.from_pretrained(model_name)
+        self.tokenizer = transformers.AutoTokenizer.from_pretrained(model_name, torch_dtype=torch.float16)
         self.generation_params = {
             "do_sample": True,
             "temperature": 1,

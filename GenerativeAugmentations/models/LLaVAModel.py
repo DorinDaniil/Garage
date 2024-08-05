@@ -25,8 +25,8 @@ class LLaVAModel:
         model_name (str): The name of the model. Defaults to "llava-hf/llava-1.5-7b-hf".
         """
         self.device = torch.device(device)
-        self.model = transformers.LlavaForConditionalGeneration.from_pretrained(model_name).to(self.device)
-        self.processor = transformers.AutoProcessor.from_pretrained(model_name)
+        self.model = transformers.LlavaForConditionalGeneration.from_pretrained(model_name, torch_dtype=torch.float16).to(self.device)
+        self.processor = transformers.AutoProcessor.from_pretrained(model_name, torch_dtype=torch.float16)
 
     def _infer(self, 
                prompt: str, 

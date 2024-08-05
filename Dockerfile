@@ -1,12 +1,11 @@
 FROM pytorch/pytorch:1.13.1-cuda11.6-cudnn8-devel
 
 # Arguments to build Docker Image using CUDA
-ARG USE_CUDA=0
+# ARG USE_CUDA=0
+ARG USE_CUDA=1
 ARG TORCH_ARCH=
 
 ENV AM_I_DOCKER True
-# ENV BUILD_WITH_CUDA "${USE_CUDA}"
-# ENV TORCH_CUDA_ARCH_LIST "${TORCH_ARCH}"
 ENV BUILD_WITH_CUDA True
 ENV CUDA_HOME /usr/local/cuda-11.6/
 ENV TORCH_CUDA_ARCH_LIST="3.5;5.0;6.0;6.1;7.0;7.5;8.0;8.6+PTX"
@@ -91,16 +90,14 @@ RUN pip install torch==1.13.1+cu116 torchvision==0.14.1+cu116 torchaudio==0.13.1
 # install models for segmentation
 RUN python -m pip install --no-cache-dir -e /home/${USER}/augmenter_pipeline/GenerativeAugmentations/models/GroundedSegmentAnything/segment_anything
 # When using build isolation, PyTorch with newer CUDA is installed and can't compile GroundingDINO
-ENV CUDA_VISIBLE_DEVICES 0
 RUN python -m pip install --no-cache-dir wheel
 WORKDIR /home/${USER}/augmenter_pipeline/GenerativeAugmentations/models/GroundedSegmentAnything/GroundingDINO
 RUN python /home/${USER}/augmenter_pipeline/GenerativeAugmentations/models/GroundedSegmentAnything/GroundingDINO/setup.py build
 RUN python /home/${USER}/augmenter_pipeline/GenerativeAugmentations/models/GroundedSegmentAnything/GroundingDINO/setup.py install
-# RUN python -m pip install --no-cache-dir --no-build-isolation -e /home/${USER}/augmenter_pipeline/GenerativeAugmentations/models/GroundedSegmentAnything/GroundingDINO
 
-WORKDIR /home/${USER}
+WORKDIR /home/${USER}/augmenter_pipeline
 # download weights
-# RUN git lfs clone https://huggingface.co/JunhaoZhuang/PowerPaint-v2-1/ /home/${USER}/augmenter_pipeline/checkpoints/ppt-v2-1
+RUN git lfs clone https://huggingface.co/JunhaoZhuang/PowerPaint-v2-1/ /home/${USER}/augmenter_pipeline/checkpoints/ppt-v2-1
 RUN wget -O /home/${USER}/augmenter_pipeline/sam_vit_h_4b8939.pth https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth
 RUN wget -O /home/${USER}/augmenter_pipeline/groundingdino_swint_ogc.pth https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alpha/groundingdino_swint_ogc.pth
 
@@ -113,4 +110,4 @@ RUN pip install pip==${PIP_VERSION} setuptools==${SETUPTOOLS_VERSION}
 EXPOSE 7860
 ENV GRADIO_SERVER_NAME="0.0.0.0"
 
-CMD ["python", "augmenter_pipeline/app.py"]
+# CMD ["python", "app.py"]

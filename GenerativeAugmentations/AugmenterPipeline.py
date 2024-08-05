@@ -25,7 +25,8 @@ class Augmenter:
         self.device = device
         self._models = {
             "Mistral": MistralModel(device=self.device),
-            "LLaVA": LLaVAModel(device=self.device),
+            "LLaVA": LLaVAModel(device="cuda:1"),
+            # "LLaVA": LLaVAModel(device=self.device),
             "PowerPaint": PowerPaintModel(device=self.device)
         }
 

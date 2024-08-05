@@ -5,6 +5,7 @@ import time
 from PIL import Image
 import gradio as gr
 import matplotlib.pyplot as plt
+from huggingface_hub import login
 
 from GenerativeAugmentations.models.GroundedSegmentAnything.segment_anything.segment_anything import SamPredictor, sam_model_registry
 from GenerativeAugmentations.models.GroundedSegmentAnything.GroundingDINO.groundingdino.util.inference import Model
@@ -20,6 +21,8 @@ GROUNDING_DINO_CONFIG_PATH = "GenerativeAugmentations/models/GroundedSegmentAnyt
 GROUNDING_DINO_CHECKPOINT_PATH = "groundingdino_swint_ogc.pth"
 SAM_CHECKPOINT_PATH = "sam_vit_h_4b8939.pth"
 SAM_ENCODER_VERSION = "vit_h"
+
+login()
 
 class GradioWindow():
     def __init__(self) -> None:

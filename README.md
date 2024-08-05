@@ -28,28 +28,23 @@ git clone https://github.com/IDEA-Research/Grounded-Segment-Anything GroundedSeg
 ```
 
 ### Use Docker
+Dockerfile authomatically starts demo app in file [app.py](/home/izmesteva_ua/augmenter_pipeline/app.py)
+
 To start with Docker run following commands:
 ```
 # build image
 docker build -t augmenter-app .
 
 # run container
-docker run -it -d --gpus all -p 7860:7860 --name augmenter augmenter-app
-
-# get into running container
-docker exec -u 0 -it augmenter /bin/bash 
-cd augmenter_pipeline 
+docker run -it --gpus all -p 7860:7860 --name augmenter augmenter-app
 ```
 
-To run demo app use followung command:
+To use demo app wait for the app to load and go to the following link in your browser:
 ```
-python app.py
+Running on local URL:  http://0.0.0.0:7860
 ```
 
-Don't forget to login in **huggingface**!
-```
-huggingface-cli login
-```
+Don't forget to login in [**huggingface**](https://huggingface.co/settings/tokens) via token!
 
 ## Usage
 
