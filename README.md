@@ -34,11 +34,16 @@ To start with Docker run following commands:
 docker build -t augmenter-app .
 
 # run container
-docker run -it -d -p 7860:7860 --rm --name augmenter augmenter-app
+docker run -it -d --gpus all -p 7860:7860 --rm --name augmenter augmenter-app
 
 # get into running container
 docker exec -u 0 -it augmenter /bin/bash 
 cd augmenter_pipeline 
+```
+
+Don't forget to login in **huggingface**!
+```
+huggingface-cli login
 ```
 
 ## Usage
