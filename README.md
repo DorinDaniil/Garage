@@ -41,6 +41,11 @@ docker exec -u 0 -it augmenter /bin/bash
 cd augmenter_pipeline 
 ```
 
+To run demo app use followung command:
+```
+python app.py
+```
+
 Don't forget to login in **huggingface**!
 ```
 huggingface-cli login
