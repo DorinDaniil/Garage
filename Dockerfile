@@ -5,9 +5,11 @@ ARG USE_CUDA=0
 ARG TORCH_ARCH=
 
 ENV AM_I_DOCKER True
-ENV BUILD_WITH_CUDA "${USE_CUDA}"
-ENV TORCH_CUDA_ARCH_LIST "${TORCH_ARCH}"
+# ENV BUILD_WITH_CUDA "${USE_CUDA}"
+# ENV TORCH_CUDA_ARCH_LIST "${TORCH_ARCH}"
+ENV BUILD_WITH_CUDA True
 ENV CUDA_HOME /usr/local/cuda-11.6/
+ENV TORCH_CUDA_ARCH_LIST="3.5;5.0;6.0;6.1;7.0;7.5;8.0;8.6+PTX"
 
 ENV DEBIAN_FRONTEND noninteractive
 
@@ -75,17 +77,6 @@ ENV PATH="/home/${USER}/.local/bin:$PATH"
 # Configure Git to trust the repository's directory
 RUN git config --global --add safe.directory /home/${USER}/augmenter_pipeline
 
-# download weights
-RUN git lfs clone https://huggingface.co/JunhaoZhuang/PowerPaint-v2-1/ /home/${USER}/augmenter_pipeline/checkpoints/ppt-v2-1
-RUN wget -O /home/${USER}/augmenter_pipeline/sam_vit_h_4b8939.pth https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth
-RUN wget -O /home/${USER}/augmenter_pipeline/groundingdino_swint_ogc.pth https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alpha/groundingdino_swint_ogc.pth
-
-# install models for segmentation
-RUN python -m pip install --no-cache-dir -e /home/${USER}/augmenter_pipeline/GenerativeAugmentations/models/GroundedSegmentAnything/segment_anything
-# When using build isolation, PyTorch with newer CUDA is installed and can't compile GroundingDINO
-RUN python -m pip install --no-cache-dir wheel
-RUN python -m pip install --no-cache-dir --no-build-isolation -e /home/${USER}/augmenter_pipeline/GenerativeAugmentations/models/GroundedSegmentAnything/GroundingDINO
-
 # create venv
 ENV VIRTUAL_ENV="/home/${USER}/.venv"
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
@@ -94,6 +85,26 @@ RUN python -m venv $VIRTUAL_ENV
 COPY requirements.txt /tmp/requirements.txt
 RUN python3 -m pip install -r /tmp/requirements.txt
 
+# Install PyTorch with the correct CUDA version
+RUN pip install torch==1.13.1+cu116 torchvision==0.14.1+cu116 torchaudio==0.13.1 -f https://download.pytorch.org/whl/torch_stable.html
+
+# install models for segmentation
+RUN python -m pip install --no-cache-dir -e /home/${USER}/augmenter_pipeline/GenerativeAugmentations/models/GroundedSegmentAnything/segment_anything
+# When using build isolation, PyTorch with newer CUDA is installed and can't compile GroundingDINO
+ENV CUDA_VISIBLE_DEVICES 0
+RUN python -m pip install --no-cache-dir wheel
+WORKDIR /home/${USER}/augmenter_pipeline/GenerativeAugmentations/models/GroundedSegmentAnything/GroundingDINO
+RUN python /home/${USER}/augmenter_pipeline/GenerativeAugmentations/models/GroundedSegmentAnything/GroundingDINO/setup.py build
+RUN python /home/${USER}/augmenter_pipeline/GenerativeAugmentations/models/GroundedSegmentAnything/GroundingDINO/setup.py install
+# RUN python -m pip install --no-cache-dir --no-build-isolation -e /home/${USER}/augmenter_pipeline/GenerativeAugmentations/models/GroundedSegmentAnything/GroundingDINO
+
+WORKDIR /home/${USER}
+# download weights
+# RUN git lfs clone https://huggingface.co/JunhaoZhuang/PowerPaint-v2-1/ /home/${USER}/augmenter_pipeline/checkpoints/ppt-v2-1
+RUN wget -O /home/${USER}/augmenter_pipeline/sam_vit_h_4b8939.pth https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth
+RUN wget -O /home/${USER}/augmenter_pipeline/groundingdino_swint_ogc.pth https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alpha/groundingdino_swint_ogc.pth
+
+
 # upgrade pip
 ARG PIP_VERSION=23.3.1
 ARG SETUPTOOLS_VERSION=68.2.2
@@ -101,3 +112,5 @@ RUN pip install pip==${PIP_VERSION} setuptools==${SETUPTOOLS_VERSION}
 
 EXPOSE 7860
 ENV GRADIO_SERVER_NAME="0.0.0.0"
+
+CMD ["python", "augmenter_pipeline/app.py"]
