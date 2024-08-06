@@ -49,7 +49,7 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
 RUN ln -s /usr/bin/python3 /usr/bin/python
 
 # add user and his password
-ENV USER=augmenter_docker
+ENV USER=garage_docker
 ARG UID=1000
 ARG GID=1000
 # default password
@@ -59,21 +59,21 @@ RUN useradd -m ${USER} --uid=${UID} && echo "${USER}:${PW}" | chpasswd && adduse
 WORKDIR /home/${USER}
 
 # create some directories for mounting volumes
-RUN mkdir augmenter_pipeline && chown -R ${UID}:${GID} /home/${USER}
-COPY . /home/${USER}/augmenter_pipeline
+RUN mkdir Garage && chown -R ${UID}:${GID} /home/${USER}
+COPY . /home/${USER}/Garage
 
 USER root
 
-# Ensure proper permissions for the augmenter_pipeline directory
-RUN chown -R ${UID}:${GID} /home/${USER}/augmenter_pipeline
-RUN chmod -R u+w /home/${USER}/augmenter_pipeline
+# Ensure proper permissions for the Garage directory
+RUN chown -R ${UID}:${GID} /home/${USER}/Garage
+RUN chmod -R u+w /home/${USER}/Garage
 
 USER ${UID}:${GID}
 
 ENV PATH="/home/${USER}/.local/bin:$PATH"
 
 # Configure Git to trust the repository's directory
-RUN git config --global --add safe.directory /home/${USER}/augmenter_pipeline
+RUN git config --global --add safe.directory /home/${USER}/Garage
 
 # create venv
 ENV VIRTUAL_ENV="/home/${USER}/.venv"
@@ -87,18 +87,18 @@ RUN python3 -m pip install -r /tmp/requirements.txt
 RUN pip install torch==1.13.1+cu116 torchvision==0.14.1+cu116 torchaudio==0.13.1 -f https://download.pytorch.org/whl/torch_stable.html
 
 # install models for segmentation
-RUN python -m pip install --no-cache-dir -e /home/${USER}/augmenter_pipeline/GenerativeAugmentations/models/GroundedSegmentAnything/segment_anything
+RUN python -m pip install --no-cache-dir -e /home/${USER}/Garage/Garage/models/GroundedSegmentAnything/segment_anything
 # When using build isolation, PyTorch with newer CUDA is installed and can't compile GroundingDINO
 RUN python -m pip install --no-cache-dir wheel
-WORKDIR /home/${USER}/augmenter_pipeline/GenerativeAugmentations/models/GroundedSegmentAnything/GroundingDINO
-RUN python /home/${USER}/augmenter_pipeline/GenerativeAugmentations/models/GroundedSegmentAnything/GroundingDINO/setup.py build
-RUN python /home/${USER}/augmenter_pipeline/GenerativeAugmentations/models/GroundedSegmentAnything/GroundingDINO/setup.py install
+WORKDIR /home/${USER}/Garage/Garage/models/GroundedSegmentAnything/GroundingDINO
+RUN python /home/${USER}/Garage/Garage/models/GroundedSegmentAnything/GroundingDINO/setup.py build
+RUN python /home/${USER}/Garage/Garage/models/GroundedSegmentAnything/GroundingDINO/setup.py install
 
-WORKDIR /home/${USER}/augmenter_pipeline
+WORKDIR /home/${USER}/Garage
 # download weights
-RUN git lfs clone https://huggingface.co/JunhaoZhuang/PowerPaint-v2-1/ /home/${USER}/augmenter_pipeline/checkpoints/ppt-v2-1
-RUN wget -O /home/${USER}/augmenter_pipeline/sam_vit_h_4b8939.pth https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth
-RUN wget -O /home/${USER}/augmenter_pipeline/groundingdino_swint_ogc.pth https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alpha/groundingdino_swint_ogc.pth
+RUN git lfs clone https://huggingface.co/JunhaoZhuang/PowerPaint-v2-1/ /home/${USER}/Garage/checkpoints/ppt-v2-1
+RUN wget -O /home/${USER}/Garage/sam_vit_h_4b8939.pth https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth
+RUN wget -O /home/${USER}/Garage/groundingdino_swint_ogc.pth https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alpha/groundingdino_swint_ogc.pth
 
 
 # upgrade pip
