@@ -1,6 +1,6 @@
-# Garage
+# Garage: Generative Augmentation Framework for Transforming Object Representations in Images
 
-Welcome to **Garage~---Generative Augmentation Framework for Transforming Object Representations in Images**, a cutting-edge Python library designed for generative image augmentation! Our library includes the Augmenter model, which leverages advanced machine learning techniques to generate new objects and prompts, seamlessly replacing specified objects in images with new ones using PowerPaint.
+Welcome to **Garage**, a cutting-edge Python library designed for generative image augmentation! Our library includes the Augmenter model, which leverages advanced machine learning techniques to generate new objects and prompts, seamlessly replacing specified objects in images with new ones using PowerPaint.
 
 ## Get Started
 
@@ -9,8 +9,8 @@ Welcome to **Garage~---Generative Augmentation Framework for Transforming Object
 git clone https://github.com/DorinDaniil/augmenter_pipeline.git
 
 # Create Virtual Environment with Conda
-conda create --name genaug python=3.10
-conda activate genaug
+conda create --name garage python=3.10
+conda activate garage
 
 # Install Dependencies
 pip install -r requirements.txt
@@ -43,12 +43,12 @@ Don't forget to login in [**huggingface**](https://huggingface.co/settings/token
 
 ## Usage
 
-Here's a step-by-step guide on how to use the GenerativeAugmentations library to perform image augmentation:
+Here's a step-by-step guide on how to use the **Garage** library to perform image augmentation:
 
 ### Import the necessary modules
 
 ```python
-from GenerativeAugmentations import Augmenter
+from Garage import Augmenter
 from PIL import Image
 ```
 
@@ -97,7 +97,7 @@ The `result` variable will contain the modified image, prompt used for generatio
 
 ### Examples
 
-More examples of how to use the Generative Augmentations refer to the `example.ipynb`
+More examples of how to use **Garage** refer to the `example.ipynb`
 
 ## Download augmented datasets
 
