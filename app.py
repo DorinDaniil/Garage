@@ -6,9 +6,9 @@ from PIL import Image
 import gradio as gr
 import matplotlib.pyplot as plt
 
-from GenerativeAugmentations.models.GroundedSegmentAnything.segment_anything.segment_anything import SamPredictor, sam_model_registry
-from GenerativeAugmentations.models.GroundedSegmentAnything.GroundingDINO.groundingdino.util.inference import Model
-from GenerativeAugmentations import Augmenter
+from Garage.models.GroundedSegmentAnything.segment_anything.segment_anything import SamPredictor, sam_model_registry
+from Garage.models.GroundedSegmentAnything.GroundingDINO.groundingdino.util.inference import Model
+from Garage import Augmenter
 
 MODEL_DICT = dict(
     vit_h="https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth",  # yapf: disable  # noqa
@@ -16,7 +16,7 @@ MODEL_DICT = dict(
     vit_b="https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth",  # yapf: disable  # noqa
 )
 
-GROUNDING_DINO_CONFIG_PATH = "GenerativeAugmentations/models/GroundedSegmentAnything/GroundingDINO_SwinT_OGC.py"
+GROUNDING_DINO_CONFIG_PATH = "Garage/models/GroundedSegmentAnything/GroundingDINO_SwinT_OGC.py"
 GROUNDING_DINO_CHECKPOINT_PATH = "groundingdino_swint_ogc.pth"
 SAM_CHECKPOINT_PATH = "sam_vit_h_4b8939.pth"
 SAM_ENCODER_VERSION = "vit_h"

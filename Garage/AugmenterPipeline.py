@@ -6,7 +6,7 @@ import random
 from PIL import Image
 from typing import Any, Dict, List, Optional, Tuple
 
-from .models import MistralModel
+from .models import LLaMAModel
 from .models import LLaVAModel
 from .models import PowerPaintModel
 
@@ -24,7 +24,7 @@ class Augmenter:
         """
         self.device = device
         self._models = {
-            "Mistral": MistralModel(device=self.device),
+            "LLaMA": LLaMAModel(device=self.device),
             "LLaVA": LLaVAModel(device=self.device),
             "PowerPaint": PowerPaintModel(device=self.device)
         }
@@ -75,7 +75,7 @@ class Augmenter:
             mask = mask.convert('L')
 
         image_description = self._models["LLaVA"].generate_image_description(image)
-        prompt, new_object = self._models["Mistral"].generate_prompt(current_object, image_description, new_objects_list)
+        prompt, new_object = self._models["LLaMA"].generate_prompt(current_object, image_description, new_objects_list)
         
         input_image = {'image': image, 'mask': mask}
         

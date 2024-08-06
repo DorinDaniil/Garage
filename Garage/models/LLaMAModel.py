@@ -2,13 +2,13 @@ import torch
 import transformers
 from typing import Optional, List, Tuple
 
-class MistralModel:
+class LLaMAModel:
     """
-    A class implementing the Mistral model for generating responses based on text input.
+    A class implementing the LLaMA model for generating responses based on text input.
 
     Attributes:
     device (torch.device): The device on which the model will run.
-    model (transformers.AutoModelForCausalLM): The Mistral model for causal language modeling.
+    model (transformers.AutoModelForCausalLM): The LLaMA model for causal language modeling.
     tokenizer (transformers.AutoTokenizer): The tokenizer for handling input data.
     generation_params (dict): The parameters for generating responses.
     """
