@@ -21,7 +21,7 @@ To use **Garage** library download the PowerPaint v2-1 weights.
 ```bash
 git lfs clone https://huggingface.co/JunhaoZhuang/PowerPaint-v2-1/ ./checkpoints/ppt-v2-1
 ```
-### Use demo
+### Use Demo
 You can launch the Gradio interface for **Garage** by running the following command:
 ```bash
 # Download the PowerPaint v2-1 weights
