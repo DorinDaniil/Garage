@@ -17,12 +17,23 @@ conda activate garage
 # Install Dependencies
 pip install -r requirements.txt
 ```
-To use the model download the PowerPaint v2-1 weights.
+To use **Garage** library download the PowerPaint v2-1 weights.
 ```bash
 git lfs clone https://huggingface.co/JunhaoZhuang/PowerPaint-v2-1/ ./checkpoints/ppt-v2-1
 ```
+### Use demo
+You can launch the Gradio interface for Garage by running the following command:
+```bash
+# Download the PowerPaint v2-1 weights
+git lfs clone https://huggingface.co/JunhaoZhuang/PowerPaint-v2-1/ ./checkpoints/ppt-v2-1
 
-To use GroundedSAM follow the installation instructions [here](https://github.com/IDEA-Research/Grounded-Segment-Anything/tree/main)
+# Download the Grounded SAM weights
+wget https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alpha/groundingdino_swint_ogc.pth
+wget https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth
+
+conda activate garage
+python app.py --share 
+```
 
 ### Use Docker
 Dockerfile authomatically starts demo app in file [app.py](app.py)
