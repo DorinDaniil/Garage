@@ -6,10 +6,10 @@ Welcome to GenerativeAugmentations, a cutting-edge Python library designed for g
 
 ```bash
 # Clone the Repository
-git clone https://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@github.com/DorinDaniil/augmenter_pipeline.git
+git clone https://github.com/DorinDaniil/augmenter_pipeline.git
 
 # Create Virtual Environment with Conda
-conda create --name genaug python=3.12
+conda create --name genaug python=3.10
 conda activate genaug
 
 # Install Dependencies
@@ -22,16 +22,11 @@ git lfs clone https://huggingface.co/JunhaoZhuang/PowerPaint-v2-1/ ./checkpoints
 
 To use GroundedSAM follow the installation instructions [here](https://github.com/IDEA-Research/Grounded-Segment-Anything/tree/main)
 
-```
-cd GenerativeAugmentations/models
-git clone https://github.com/IDEA-Research/Grounded-Segment-Anything GroundedSegmentAnything
-```
-
 ### Use Docker
 Dockerfile authomatically starts demo app in file [app.py](/home/izmesteva_ua/augmenter_pipeline/app.py)
 
 To start with Docker run following commands:
-```
+```bash
 # build image
 docker build -t augmenter-app .
 
@@ -89,8 +84,8 @@ mask = Image.open("path/to/your/mask.jpg")
 result, (prompt, new_object) = augmenter(
     image=image,
     mask=mask,
-    current_object=current_object,
-    new_objects_list=new_objects_list,
+    current_object="replacement object",
+    new_objects_list=None,
     ddim_steps=50,
     guidance_scale=5,
     seed=1,
@@ -102,7 +97,7 @@ The `result` variable will contain the modified image, prompt used for generatio
 
 ### Examples
 
-For examples of how to use the GenerativeAugmentations refer to the example.ipynb
+More examples of how to use the Generative Augmentations refer to the `example.ipynb`
 
 ## Download augmented datasets
 

@@ -96,8 +96,7 @@ class MistralModel:
     def generate_prompt(self, 
                         current_object: str, 
                         image_description: str, 
-                        new_objects_list: Optional[List[str]] = None,
-                        return_new_object: bool = False) -> Tuple[str, str]:
+                        new_objects_list: Optional[List[str]] = None) -> Tuple[str, str]:
         """
         Generates a prompt with a description of the new object.
 
