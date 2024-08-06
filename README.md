@@ -25,23 +25,21 @@ git lfs clone https://huggingface.co/JunhaoZhuang/PowerPaint-v2-1/ ./checkpoints
 To use GroundedSAM follow the installation instructions [here](https://github.com/IDEA-Research/Grounded-Segment-Anything/tree/main)
 
 ### Use Docker
-Dockerfile authomatically starts demo app in file [app.py](/home/izmesteva_ua/augmenter_pipeline/app.py)
+Dockerfile authomatically starts demo app in file [app.py](app.py)
 
 To start with Docker run following commands:
 ```bash
 # build image
-docker build -t augmenter-app .
+docker build -t garage-app .
 
 # run container
-docker run -it --gpus all -p 7860:7860 --name augmenter augmenter-app
+docker run -it --gpus all -p 7860:7860 --name garage garage-app
 ```
 
 To use demo app wait for the app to load and go to the following link in your browser:
 ```
 Running on local URL:  http://0.0.0.0:7860
 ```
-
-Don't forget to login in [**huggingface**](https://huggingface.co/settings/tokens) via token!
 
 ## Usage
 
