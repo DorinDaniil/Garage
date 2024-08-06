@@ -112,5 +112,6 @@ snapshot_download(repo_id="danulkin/VOC2007Augs", repo_type="dataset", local_dir
 
 ## Contact Us
 **Andrei Filatov**: filatovandreiv@gmail.com
+
 **Daniil Dorin**: dorin.dd@phystech.edu
 
