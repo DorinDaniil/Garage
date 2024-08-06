@@ -127,5 +127,5 @@ snapshot_download(repo_id="danulkin/VOC2007Augs", repo_type="dataset", local_dir
 
 **Daniil Dorin**: dorin.dd@phystech.edu
 
-**Ulyana Izmesteva** izmesteva.ua@phystech.edu
+**Ulyana Izmesteva**: izmesteva.ua@phystech.edu
 
