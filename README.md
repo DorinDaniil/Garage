@@ -8,7 +8,7 @@ Welcome to **Garage**, a cutting-edge Python library designed for generative ima
 
 ```bash
 # Clone the Repository
-git clone https://github.com/DorinDaniil/augmenter_pipeline.git
+git clone https://github.com/DorinDaniil/Garage.git
 
 # Create Virtual Environment with Conda
 conda create --name garage python=3.10
