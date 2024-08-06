@@ -35,6 +35,9 @@ conda activate garage
 python app.py --share 
 ```
 
+Upon launching the interface, you can upload images to augment with new objects. You have the option to segment an object mask using a text prompt or by selecting a mask from examples. To choose a mask, simply click on it in the right frame. Next, enter the text prompt for the new object you wish to replace the segmented object with. Utilize the advanced options to adjust the segmentation and augmentation process.
+![Demo](examples/demo_scheme_final.png)
+
 ### Use Docker
 Dockerfile authomatically starts demo app in file [app.py](app.py)
 
