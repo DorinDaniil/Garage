@@ -1,10 +1,8 @@
 import torch
-import transformers
-import os
 import numpy as np
 import random
 from PIL import Image
-from typing import Any, Dict, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 from .models import LLaMAModel
 from .models import LLaVAModel
