@@ -1,6 +1,6 @@
-# GenerativeAugmentations
+# Garage
 
-Welcome to GenerativeAugmentations, a cutting-edge Python library designed for generative image augmentation! Our library includes the Augmenter model, which leverages advanced machine learning techniques to generate new objects and prompts, seamlessly replacing specified objects in images with new ones using PowerPaint.
+Welcome to **Garage~---Generative Augmentation Framework for Transforming Object Representations in Images**, a cutting-edge Python library designed for generative image augmentation! Our library includes the Augmenter model, which leverages advanced machine learning techniques to generate new objects and prompts, seamlessly replacing specified objects in images with new ones using PowerPaint.
 
 ## Get Started
 
