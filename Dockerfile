@@ -4,12 +4,12 @@ FROM pytorch/pytorch:1.13.1-cuda11.6-cudnn8-devel
 ARG USE_CUDA=1
 ARG TORCH_ARCH=
 
-ENV AM_I_DOCKER True
-ENV BUILD_WITH_CUDA True
-ENV CUDA_HOME /usr/local/cuda-11.6/
+ENV AM_I_DOCKER=True
+ENV BUILD_WITH_CUDA=True
+ENV CUDA_HOME=/usr/local/cuda-11.6/
 ENV TORCH_CUDA_ARCH_LIST="3.5;5.0;6.0;6.1;7.0;7.5;8.0;8.6+PTX"
 
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     curl \
@@ -109,4 +109,4 @@ RUN pip install pip==${PIP_VERSION} setuptools==${SETUPTOOLS_VERSION}
 EXPOSE 7860
 ENV GRADIO_SERVER_NAME="0.0.0.0"
 
-CMD ["python", "app.py"]
+# CMD ["python", "app.py"]

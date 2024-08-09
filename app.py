@@ -26,6 +26,7 @@ class GradioWindow():
         self.points = []
         self.mask = []
         self.selected_mask = None
+        self.segmentation_mask = None
         self.examples_masks = {
             0: ["dog", "examples/dog_mask.jpg"],
             1: ["bread", "examples/bread_mask.jpg"],
@@ -41,8 +42,8 @@ class GradioWindow():
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         # for debug
-        # self.augmenter = None
-        self.augmenter = Augmenter(device=self.device)
+        self.augmenter = None
+        # self.augmenter = Augmenter(device=self.device)
         self.setup_model()
         self.main()
 
@@ -62,6 +63,7 @@ class GradioWindow():
                     )
                     self.current_object = gr.Textbox(label="Current object")
                     with gr.Accordion("Advanced options", open=False):
+                        self.use_mask = gr.Checkbox(label="Use segmentation mask", value=False)
                         box_threshold = gr.Slider(minimum=0.0, maximum=1.0, value=0.25, label="Box threshold")
                         text_threshold = gr.Slider(minimum=0.0, maximum=1.0, value=0.25, label="Text threshold")
 
@@ -90,7 +92,7 @@ class GradioWindow():
                         [self.examples_masks[4][1]], 
                         ], 
                         inputs=[selected_mask, input_img],    
-                        outputs=[segmented_img, self.current_object],
+                        outputs=[segmented_img, self.current_object, self.use_mask],
                         fn=self.set_mask,
                         run_on_click=True
                     )
@@ -128,6 +130,12 @@ class GradioWindow():
                 outputs=[segmented_img, selected_mask]
             )
 
+            self.use_mask.change(
+                fn=self.change_mask_type,
+                inputs=[self.use_mask],
+                outputs=[]
+            )
+
             segmented_img.select(
                 self.select_mask,
                 inputs=[input_img],
@@ -152,6 +160,16 @@ class GradioWindow():
             device=self.device
             )
 
+    def change_mask_type(self, is_segmmask):
+        if is_segmmask:
+            self.selected_mask = self.segmentation_mask
+        else:
+            self.selected_mask = self.get_bbox_mask(self.selected_mask)
+        return self.selected_mask
+
+    def get_bbox_mask(self, mask):
+        return mask    
+
     def select_mask(self, image: Image, evt: gr.SelectData):
         self.points = [evt.index[0], evt.index[1]]
         selected_mask = np.zeros_like(image)
@@ -163,6 +181,7 @@ class GradioWindow():
             print(f"SELECT MASK {mask.shape}, unique {np.unique(mask)}")
             if mask[self.points[1]][self.points[0]]:
                 self.selected_mask = Image.fromarray(mask)
+                self.segmentation_mask = self.selected_mask.copy()
                 color = np.array([30 / 255, 144 / 255, 255 / 255])
                 selected_mask[mask > 0] = color.reshape(1, 1, -1) * 255
                 selected_mask = Image.fromarray(selected_mask, mode="RGB")
@@ -185,7 +204,7 @@ class GradioWindow():
         self.mask = [Image.fromarray(bin_mask)]
 
         res = self.show_mask(mask, image)
-        return res, current_object
+        return res, current_object, True
 
     def detect(self, image: Image, prompt: str, box_threshold: float, text_threshold: float):
         detections = self.grounding_dino_model.predict_with_classes(
@@ -269,20 +288,20 @@ class GradioWindow():
         mask = np.squeeze(mask)
         mask = Image.fromarray(mask, mode='L')
 
-        result, (prompt, new_object) = self.augmenter(
-        image=image,
-        mask=mask,
-        current_object=current_object,
-        new_objects_list=[new_objects_list],
-        ddim_steps=ddim_steps,
-        guidance_scale=guidance_scale,
-        seed=seed,
-        return_prompt=return_prompt
-        )
+        # result, (prompt, new_object) = self.augmenter(
+        # image=image,
+        # mask=mask,
+        # current_object=current_object,
+        # new_objects_list=[new_objects_list],
+        # ddim_steps=ddim_steps,
+        # guidance_scale=guidance_scale,
+        # seed=seed,
+        # return_prompt=return_prompt
+        # )
 
-        # # for debug
-        # result = mask
-        # prompt = "just mask" 
+        # for debug
+        result = mask
+        prompt = "just mask" 
         
         if not return_prompt:
             prompt = ""
