@@ -1,5 +1,6 @@
 import torch
 import transformers
+import os
 from typing import Optional, List, Tuple
 
 class LLaMAModel:
@@ -15,27 +16,47 @@ class LLaMAModel:
 
     def __init__(self, 
                  device: str = "cuda", 
-                 model_name: str = "Intel/neural-chat-7b-v3-1"):
+                 model_name: str = "meta-llama/Meta-Llama-3.1-8B-Instruct"):
         """
         Initializes the model.
 
         Args:
         device (str): Describing the device on which the model will run. Defaults to "cuda".
-        model_name (str): The name of the model. Defaults to "Intel/neural-chat-7b-v3-1".
+        model_name (str): The name of the model. Defaults to "meta-llama/Meta-Llama-3.1-8B-Instruct".
         """
         self.device = torch.device(device)
-        self.model = transformers.AutoModelForCausalLM.from_pretrained(model_name)
-        self.model = self.model.to(self.device)
-        self.tokenizer = transformers.AutoTokenizer.from_pretrained(model_name)
+        self.model = transformers.pipeline(
+                "text-generation",
+                model=model_name,
+                model_kwargs={"torch_dtype": torch.bfloat16},
+                device=self.device,
+                pad_token_id=128009
+        )
+        
+        terminators = [
+                self.model.tokenizer.eos_token_id,
+                self.model.tokenizer.convert_tokens_to_ids("<|eot_id|>")
+        ]
+        
         self.generation_params = {
-            "do_sample": True,
-            "temperature": 1,
-            "top_p": 0.90,
-            "top_k": 40,
-            "max_new_tokens": 77,
-            "repetition_penalty": 1.1,
-            "pad_token_id": self.tokenizer.eos_token_id,
+                "max_new_tokens": 256,
+                "eos_token_id": terminators,
+                "do_sample": True,
+                "temperature": 0.6,
+                "top_p": 0.9
         }
+
+
+    def to(self, device):
+        """
+        Moves the model to the specified device.
+        
+        Args:
+        device (torch.device): The device on which the model will run.
+        """
+        self.model.model.to(device)
+        self.device = device
+
 
     def _infer(self, 
                prompt: str) -> str:
@@ -48,13 +69,14 @@ class LLaMAModel:
         Returns:
         str: The generated response.
         """
-        inputs = self.tokenizer.encode(prompt, return_tensors="pt", add_special_tokens=False)
-        inputs = inputs.to(self.device)
+        messages = [
+            {"role": "user", "content": prompt},
+        ]
+        outputs = self.model(messages, **self.generation_params)
+        assistant_response = outputs[0]["generated_text"][-1]["content"]
 
-        outputs = self.model.generate(inputs, num_return_sequences=1, **self.generation_params)
-        response = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+        return assistant_response
 
-        return response
 
     def _generate_new_object(self, 
                              current_object: str, 
@@ -86,12 +108,13 @@ class LLaMAModel:
                     " If no object from the list fits into the picture, return the existing object."
                     " The image should remain believable after replacement."
                     f" So, image description: {image_description}, existing object: {current_object}, a list of potential new objects: {new_objects_list}."
-                    " You should select and return only the name of new object from the provided list,"
-                    " which fits into the picture to replace the existing one. ASSISTANT: ")
+                    " You should select and return only the name of new object without quotes from the provided list,"
+                    " which fits into the picture to replace the existing one and nothing else. Return only name of new object. ASSISTANT: ")
 
         new_object = self._infer(prompt_1 if new_objects_list is None else prompt_2)
-        new_object = new_object[new_object.rfind('ASSISTANT:') + 10:]
+
         return ' '.join(new_object.split()).lower()
+
 
     def generate_prompt(self, 
                         current_object: str, 
@@ -121,6 +144,4 @@ class LLaMAModel:
                 f" Do not add anything extra to the visual description that is not directly related to {new_object}. ASSISTANT: ")
 
         output_prompt = self._infer(prompt)
-        output_prompt = output_prompt[output_prompt.rfind('ASSISTANT:') + 10:]
-        new_object = new_object.replace(' ', '')
         return ' '.join(output_prompt.split()), new_object

@@ -17,8 +17,8 @@ MODEL_DICT = dict(
 )
 
 GROUNDING_DINO_CONFIG_PATH = "Garage/models/GroundedSegmentAnything/GroundingDINO_SwinT_OGC.py"
-GROUNDING_DINO_CHECKPOINT_PATH = "groundingdino_swint_ogc.pth"
-SAM_CHECKPOINT_PATH = "sam_vit_h_4b8939.pth"
+GROUNDING_DINO_CHECKPOINT_PATH = "Garage/models/checkpoints/GroundedSegmentAnything/groundingdino_swint_ogc.pth"
+SAM_CHECKPOINT_PATH = "Garage/models/checkpoints/GroundedSegmentAnything/sam_vit_h_4b8939.pth"
 SAM_ENCODER_VERSION = "vit_h"
 
 class GradioWindow():

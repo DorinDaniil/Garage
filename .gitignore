@@ -122,7 +122,7 @@ logs/
 *.csv
 !.dvc
 
-alphaCLIP_filter/AlphaCLIP/
+AlphaCLIP/
 checkpoints/
 *.pth
 
