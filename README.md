@@ -16,21 +16,14 @@ conda activate garage
 
 # Install Dependencies
 pip install -r requirements.txt
+
+# Download the Required Weights
+bash checkpoints.sh
 ```
-To use **Garage** library download the PowerPaint v2-1 weights.
-```bash
-git lfs clone https://huggingface.co/JunhaoZhuang/PowerPaint-v2-1/ ./checkpoints/ppt-v2-1
-```
+
 ### Use Demo
 You can launch the Gradio interface for **Garage** by running the following command:
 ```bash
-# Download the PowerPaint v2-1 weights
-git lfs clone https://huggingface.co/JunhaoZhuang/PowerPaint-v2-1/ ./checkpoints/ppt-v2-1
-
-# Download the Grounded SAM weights
-wget https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alpha/groundingdino_swint_ogc.pth
-wget https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth
-
 conda activate garage
 python app.py --share 
 ```
@@ -55,8 +48,10 @@ To use demo app wait for the app to load and go to the following link in your br
 Running on local URL:  http://0.0.0.0:7860
 ```
 
-## Usage
+### Use Alpha-CLIP Filter
+To use Alpha-CLIP to filter augmentations, follow the instructions in the alphaCLIP_filter directory.
 
+## Inference
 Here's a step-by-step guide on how to use the **Garage** library to perform image augmentation:
 
 ### Import the necessary modules
@@ -128,4 +123,3 @@ snapshot_download(repo_id="danulkin/VOC2007Augs", repo_type="dataset", local_dir
 **Daniil Dorin**: dorin.dd@phystech.edu
 
 **Ulyana Izmesteva**: izmesteva.ua@phystech.edu
-

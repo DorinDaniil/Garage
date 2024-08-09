@@ -14,18 +14,20 @@ from PIL import Image
 class PowerPaintModel:
     def __init__(self, 
                  device: str = "cuda", 
-                 checkpoints_path: str = "checkpoints/ppt-v2-1"):
+                 model_name: str = "ppt-v2-1"):
         """
         Initializes the PowerPaint model.
 
         Args:
         device (str): Describing the device on which the model will run. Defaults to "cuda".
-        checkpoints_path (str): Path to the model checkpoints. Defaults to "checkpoints/ppt-v2-1".
+        checkpoints_path (str): Path to the model checkpoints. Defaults to "ppt-v2-1".
         """
         self.device = torch.device(device)
-        self.checkpoints_path = checkpoints_path
+        script_directory = os.path.dirname(os.path.abspath(__file__))
+        self.checkpoints_path = os.path.join(script_directory, "checkpoints", model_name)
         self.weight_dtype = torch.float16
         self.pipe = self._prepare_pipe()
+
 
     def _prepare_pipe(self) -> StableDiffusionPowerPaintBrushNetPipeline:
         """
@@ -93,6 +95,18 @@ class PowerPaintModel:
         pipe.scheduler = UniPCMultistepScheduler.from_config(pipe.scheduler.config)
         pipe = pipe.to(self.device)
         return pipe
+    
+
+    def to(self, device):
+        """
+        Moves the model to the specified device.
+        
+        Args:
+        device (torch.device): The device on which the model will run.
+        """
+        self.pipe.to(device)
+        self.device = device
+
 
     def __call__(
         self,

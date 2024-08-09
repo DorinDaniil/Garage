@@ -3,6 +3,7 @@ import numpy as np
 import random
 from PIL import Image
 from typing import List, Optional, Tuple
+from accelerate import Accelerator
 
 from .models import LLaMAModel
 from .models import LLaVAModel
@@ -21,11 +22,14 @@ class Augmenter:
         device (str): The device to use for computations. Defaults to "cuda".
         """
         self.device = device
+        self.accelerator = Accelerator()
+
         self._models = {
             "LLaMA": LLaMAModel(device=self.device),
             "LLaVA": LLaVAModel(device=self.device),
             "PowerPaint": PowerPaintModel(device=self.device)
         }
+
 
     def _set_seed(self, seed: int) -> None:
         """
@@ -39,6 +43,20 @@ class Augmenter:
         torch.cuda.manual_seed_all(seed)
         np.random.seed(seed)
         random.seed(seed)
+
+
+    def to(self, device):
+        """
+        Moves the model to the specified device.
+        
+        Args:
+        device (torch.device): The device on which the model will run.
+        """
+        self._models["LLaMA"].to(device)
+        self._models["LLaVA"].to(device)
+        self._models["PowerPaint"].to(device)
+        self.device = device
+
 
     def __call__(self,
                 image: Image.Image,

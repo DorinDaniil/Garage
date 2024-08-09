@@ -1,8 +1,7 @@
 import torch
 import transformers
+import os
 from PIL import Image
-from torch import Tensor
-from typing import Dict
 
 class LLaVAModel:
     """
@@ -16,17 +15,22 @@ class LLaVAModel:
 
     def __init__(self, 
                  device: str = "cuda", 
-                 model_name: str = "llava-hf/llava-1.5-7b-hf"):
+                 model_name: str = "llava-1.5-7b-hf"):
         """
         Initializes the model.
         
         Args:
         device (str): Describing the device on which the model will run. Defaults to "cuda".
-        model_name (str): The name of the model. Defaults to "llava-hf/llava-1.5-7b-hf".
+        model_name (str): The name of the model. Defaults to "llava-1.5-7b-hf".
         """
         self.device = torch.device(device)
-        self.model = transformers.LlavaForConditionalGeneration.from_pretrained(model_name).to(self.device)
-        self.processor = transformers.AutoProcessor.from_pretrained(model_name)
+        script_directory = os.path.dirname(os.path.abspath(__file__))
+        checkpoints_directory = os.path.join(script_directory, "checkpoints", model_name)
+
+        self.model = transformers.LlavaForConditionalGeneration.from_pretrained(checkpoints_directory, 
+                                                                                torch_dtype=torch.bfloat16
+                                                                                ).to(self.device)
+        self.processor = transformers.AutoProcessor.from_pretrained(checkpoints_directory)
 
     def _infer(self, 
                prompt: str, 
@@ -50,6 +54,18 @@ class LLaVAModel:
                                 skip_special_tokens=True,
                                 clean_up_tokenization_spaces=False)[0]
         return answer
+
+
+    def to(self, device):
+        """
+        Moves the model to the specified device.
+        
+        Args:
+        device (torch.device): The device on which the model will run.
+        """
+        self.device = device
+        self.model.to(device)
+
 
     def generate_image_description(self, 
                               image: Image.Image) -> str:
