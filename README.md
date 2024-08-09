@@ -49,7 +49,7 @@ Running on local URL:  http://0.0.0.0:7860
 ```
 
 ### Use Alpha-CLIP Filter
-To use Alpha-CLIP to filter augmentations, follow the instructions in the alphaCLIP_filter directory.
+To use Alpha-CLIP to filter augmentations, follow the instructions in the [alphaCLIP_filter](https://github.com/DorinDaniil/Garage/tree/main/alphaCLIP_filter) directory.
 
 ## Inference
 Here's a step-by-step guide on how to use the **Garage** library to perform image augmentation:
