@@ -10,6 +10,7 @@ from Garage.models.GroundedSegmentAnything.segment_anything.segment_anything imp
 from Garage.models.GroundedSegmentAnything.GroundingDINO.groundingdino.util.inference import Model
 from Garage import Augmenter
 
+
 MODEL_DICT = dict(
     vit_h="https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth",  # yapf: disable  # noqa
     vit_l="https://dl.fbaipublicfiles.com/segment_anything/sam_vit_l_0b3195.pth",  # yapf: disable  # noqa
