@@ -94,13 +94,17 @@ WORKDIR /home/${USER}/Garage/Garage/models/GroundedSegmentAnything/GroundingDINO
 RUN python /home/${USER}/Garage/Garage/models/GroundedSegmentAnything/GroundingDINO/setup.py build
 RUN python /home/${USER}/Garage/Garage/models/GroundedSegmentAnything/GroundingDINO/setup.py install
 
-WORKDIR /home/${USER}/Garage
 # download weights
-RUN mkdir Garage/models/checkpoints/GroundedSegmentAnything && chown -R ${UID}:${GID} /home/${USER}
-RUN git lfs clone https://huggingface.co/JunhaoZhuang/PowerPaint-v2-1/ /home/${USER}/Garage/models/checkpoints/ppt-v2-1
-RUN git lfs clone https://huggingface.co/llava-hf/llava-1.5-7b-hf /home/${USER}/Garage/models/checkpoints/llava-1.5-7b-hf
-RUN wget -O /home/${USER}/Garage/models/checkpoints/sam_vit_h_4b8939.pth https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth
-RUN wget -O /home/${USER}/Garage/models/checkpoints/groundingdino_swint_ogc.pth https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alpha/groundingdino_swint_ogc.pth
+WORKDIR /home/${USER}/Garage/Garage/models
+RUN mkdir checkpoints && chown -R ${UID}:${GID} /home/${USER}
+WORKDIR /home/${USER}/Garage/Garage/models/checkpoints
+RUN mkdir GroundedSegmentAnything && chown -R ${UID}:${GID} /home/${USER}
+WORKDIR /home/${USER}/Garage
+
+RUN git lfs clone https://huggingface.co/JunhaoZhuang/PowerPaint-v2-1/ /home/${USER}/Garage/Garage/models/checkpoints/ppt-v2-1
+RUN git lfs clone https://huggingface.co/llava-hf/llava-1.5-7b-hf /home/${USER}/Garage/Garage/models/checkpoints/llava-1.5-7b-hf
+RUN wget -O /home/${USER}/Garage/Garage/models/checkpoints/sam_vit_h_4b8939.pth https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth
+RUN wget -O /home/${USER}/Garage/Garage/models/checkpoints/groundingdino_swint_ogc.pth https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alpha/groundingdino_swint_ogc.pth
 
 # upgrade pip
 ARG PIP_VERSION=23.3.1
@@ -110,4 +114,4 @@ RUN pip install pip==${PIP_VERSION} setuptools==${SETUPTOOLS_VERSION}
 EXPOSE 7860
 ENV GRADIO_SERVER_NAME="0.0.0.0"
 
-# CMD ["python", "app.py"]
+CMD ["python", "app.py"]
