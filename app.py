@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import torch
 import time
-from PIL import Image
+from PIL import Image, ImageDraw
 import gradio as gr
 import matplotlib.pyplot as plt
 
@@ -26,6 +26,8 @@ class GradioWindow():
         self.points = []
         self.mask = []
         self.selected_mask = None
+        self.segmentation_mask = []
+        self.concatenated_masks = None
         self.examples_masks = {
             0: ["dog", "examples/dog_mask.jpg"],
             1: ["bread", "examples/bread_mask.jpg"],
@@ -50,7 +52,7 @@ class GradioWindow():
         with gr.Blocks() as self.demo:
             with gr.Row():
                 input_img = gr.Image(type="pil", label="Input image", interactive=True)
-                selected_mask = gr.Image(type="pil", label="Selected Mask")
+                selected_mask = gr.Image(type="pil", label="Selected Mask", interactive=True)
                 segmented_img = gr.Image(type="pil", label="Selected Segment")
 
             with gr.Row():
@@ -62,6 +64,7 @@ class GradioWindow():
                     )
                     self.current_object = gr.Textbox(label="Current object")
                     with gr.Accordion("Advanced options", open=False):
+                        self.use_mask = gr.Checkbox(label="Use segmentation mask", value=False)
                         box_threshold = gr.Slider(minimum=0.0, maximum=1.0, value=0.25, label="Box threshold")
                         text_threshold = gr.Slider(minimum=0.0, maximum=1.0, value=0.25, label="Text threshold")
 
@@ -90,7 +93,7 @@ class GradioWindow():
                         [self.examples_masks[4][1]], 
                         ], 
                         inputs=[selected_mask, input_img],    
-                        outputs=[segmented_img, self.current_object],
+                        outputs=[segmented_img, self.current_object, self.use_mask],
                         fn=self.set_mask,
                         run_on_click=True
                     )
@@ -122,10 +125,24 @@ class GradioWindow():
                             visible=True)
 
             # Connect the UI and logic
+            selected_mask.upload(
+                self.set_mask,
+                inputs=[selected_mask, input_img],    
+                outputs=[segmented_img, self.current_object, self.use_mask],
+            )
+
             segment_object.click(
                 self.detect,
-                inputs=[input_img, self.current_object, box_threshold, text_threshold],
+                inputs=[input_img, self.current_object, 
+                        self.use_mask, box_threshold, 
+                        text_threshold],
                 outputs=[segmented_img, selected_mask]
+            )
+
+            self.use_mask.change(
+                fn=self.change_mask_type,
+                inputs=[input_img, self.use_mask],
+                outputs=[selected_mask, segmented_img],
             )
 
             segmented_img.select(
@@ -152,6 +169,36 @@ class GradioWindow():
             device=self.device
             )
 
+    def change_mask_type(self, image, is_segmmask):
+        self.selected_mask = None
+        masks = []
+        self.mask = []
+        if is_segmmask:
+            for segm_mask in self.segmentation_mask:
+                gray_mask = np.array(segm_mask)
+                if gray_mask.ndim == 3:
+                    gray_mask  = gray_mask[:, :, 0]
+                    gray_mask = np.where(gray_mask > 200, True, False)
+                masks.append(gray_mask)
+                self.mask.append(Image.fromarray(gray_mask))
+            res, common_mask = self.concatenate_masks(masks, image)
+        else:
+            for segm_mask in self.segmentation_mask:
+                mask = self.get_bbox_mask(segm_mask)
+                gray_mask = np.array(mask)
+                masks.append(gray_mask)
+                self.mask.append(Image.fromarray(gray_mask))
+            res, common_mask = self.concatenate_masks(masks, image)
+        return common_mask, res
+
+    def get_bbox_mask(self, mask):
+        bbox = mask.getbbox()
+        new_mask = Image.new("L", mask.size, 0)  # Start with an all-black mask
+        draw = ImageDraw.Draw(new_mask)
+        if bbox:
+            draw.rectangle(bbox, fill=255)
+        return new_mask    
+
     def select_mask(self, image: Image, evt: gr.SelectData):
         self.points = [evt.index[0], evt.index[1]]
         selected_mask = np.zeros_like(image)
@@ -169,9 +216,14 @@ class GradioWindow():
                 break
 
         res = self.show_mask(selected_mask, image)
+        self.concatenated_masks = res
         return self.selected_mask, res
     
     def set_mask(self, mask: Image, image: Image):
+        self.selected_mask = mask
+        self.segmentation_mask = [mask]
+        current_object = None
+
         for key, value in self.examples_masks.items():
             m = Image.open(value[1])
             if np.array_equal(np.array(m), np.array(mask)):
@@ -182,12 +234,15 @@ class GradioWindow():
         gray_mask  = gray_mask[:, :, 0]
         bin_mask = np.where(gray_mask > 200, True, False)
         print(f"SET MASK {bin_mask.shape}, unique {np.unique(bin_mask)}")
+
+        _, common_mask = self.concatenate_masks([bin_mask], image)
         self.mask = [Image.fromarray(bin_mask)]
+        res = self.show_mask(common_mask, image)
+        self.concatenated_masks = res
+        return res, current_object, True
 
-        res = self.show_mask(mask, image)
-        return res, current_object
-
-    def detect(self, image: Image, prompt: str, box_threshold: float, text_threshold: float):
+    def detect(self, image: Image, prompt: str, is_segmmask: bool, 
+               box_threshold: float, text_threshold: float):
         detections = self.grounding_dino_model.predict_with_classes(
             image=cv2.cvtColor(np.array(image), cv2.COLOR_BGR2RGB),
             classes=[prompt],
@@ -204,7 +259,19 @@ class GradioWindow():
         if len(detections.mask) == 0:
             return np.array(image), Image.fromarray(np.zeros_like(np.array(image)))
         
-        image, common_mask = self.concatenate_masks(detections.mask, image)
+        self.segmentation_mask = []
+        for mask in detections.mask:    
+            self.segmentation_mask.append(Image.fromarray(mask))
+
+        if is_segmmask:
+            image, common_mask = self.concatenate_masks(detections.mask, image)
+        else:
+            masks = []
+            for mask in detections.mask:
+                bbox_mask = self.get_bbox_mask(Image.fromarray(mask))
+                masks.append(np.array(bbox_mask))
+            image, common_mask = self.concatenate_masks(masks, image)
+
         return image, common_mask
     
     def concatenate_masks(self, masks: np.ndarray, image: Image) -> np.ndarray:
@@ -265,9 +332,16 @@ class GradioWindow():
         else:
             mask = self.mask[np.random.choice(len(self.mask))]
 
+        print("self.selected_mask: ", self.selected_mask)
         mask = np.array(mask).astype(np.uint8) * 255
-        mask = np.squeeze(mask)
-        mask = Image.fromarray(mask, mode='L')
+        print(f"AUG MASK: {mask.shape}, unique {np.unique(mask)}")
+        if mask.ndim == 3:
+            mask = np.squeeze(mask)
+            if mask.ndim == 3:
+                mask  = mask[:, :, 0]
+        mask = np.where(mask > 0, True, False)  
+        print(f"AUG MASK: {mask.shape}, unique {np.unique(mask)}")
+        mask = Image.fromarray(mask)
 
         result, (prompt, new_object) = self.augmenter(
         image=image,
