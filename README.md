@@ -19,6 +19,9 @@ pip install -r requirements.txt
 
 # Download the Required Weights
 bash checkpoints.sh
+
+# Required Dependencies for Demo
+python Garage/models/GroundedSegmentAnything/GroundingDINO/setup.py install
 ```
 
 ### Use Demo

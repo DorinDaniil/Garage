@@ -16,18 +16,21 @@ class LLaMAModel:
 
     def __init__(self, 
                  device: str = "cuda", 
-                 model_name: str = "meta-llama/Meta-Llama-3.1-8B-Instruct"):
+                 model_name: str = "llama-3-8b-Instruct"):
         """
         Initializes the model.
 
         Args:
         device (str): Describing the device on which the model will run. Defaults to "cuda".
-        model_name (str): The name of the model. Defaults to "meta-llama/Meta-Llama-3.1-8B-Instruct".
+        model_name (str): The name of the model. Defaults to "llama-3-8b-Instruct".
         """
+        script_directory = os.path.dirname(os.path.abspath(__file__))
+        checkpoints_directory = os.path.join(script_directory, "checkpoints", model_name)
+        
         self.device = torch.device(device)
         self.model = transformers.pipeline(
                 "text-generation",
-                model=model_name,
+                model=checkpoints_directory,
                 model_kwargs={"torch_dtype": torch.bfloat16},
                 device=self.device,
                 pad_token_id=128009
@@ -109,7 +112,7 @@ class LLaMAModel:
                     " The image should remain believable after replacement."
                     f" So, image description: {image_description}, existing object: {current_object}, a list of potential new objects: {new_objects_list}."
                     " You should select and return only the name of new object without quotes from the provided list,"
-                    " which fits into the picture to replace the existing one and nothing else. Return only name of new object. ASSISTANT: ")
+                    " which fits into the picture to replace the existing one. Return only name of new object and nothing else. ASSISTANT: ")
 
         new_object = self._infer(prompt_1 if new_objects_list is None else prompt_2)
 

@@ -335,20 +335,18 @@ class GradioWindow():
 
         print("self.selected_mask: ", self.selected_mask)
         mask = np.array(mask).astype(np.uint8) * 255
-        print(f"AUG MASK: {mask.shape}, unique {np.unique(mask)}")
         if mask.ndim == 3:
             mask = np.squeeze(mask)
             if mask.ndim == 3:
                 mask  = mask[:, :, 0]
-        mask = np.where(mask > 0, True, False)  
-        print(f"AUG MASK: {mask.shape}, unique {np.unique(mask)}")
-        mask = Image.fromarray(mask)
+        mask = Image.fromarray(mask, mode='L')
+        new_objects_list = new_objects_list.split(", ")
 
-        result, (prompt, new_object) = self.augmenter(
+        result, (prompt, _) = self.augmenter(
         image=image,
         mask=mask,
         current_object=current_object,
-        new_objects_list=[new_objects_list],
+        new_objects_list=new_objects_list,
         ddim_steps=ddim_steps,
         guidance_scale=guidance_scale,
         seed=seed,
