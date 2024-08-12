@@ -333,13 +333,6 @@ class GradioWindow():
         else:
             mask = self.mask[np.random.choice(len(self.mask))]
 
-        print("self.selected_mask: ", self.selected_mask)
-        mask = np.array(mask).astype(np.uint8) * 255
-        if mask.ndim == 3:
-            mask = np.squeeze(mask)
-            if mask.ndim == 3:
-                mask  = mask[:, :, 0]
-        mask = Image.fromarray(mask, mode='L')
         new_objects_list = new_objects_list.split(", ")
 
         result, (prompt, _) = self.augmenter(
