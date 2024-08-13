@@ -166,7 +166,7 @@ class PowerPaintModel:
             image=Image.fromarray(np_inpimg.astype(np.uint8)).convert("RGB").convert("RGB"),
             mask=input_image["mask"].convert("RGB"),
             num_inference_steps=ddim_steps,
-            generator=torch.Generator("cuda").manual_seed(seed),
+            generator=torch.Generator(self.device).manual_seed(seed),
             brushnet_conditioning_scale=1.0,
             negative_promptA=negative_promptA,
             negative_promptB=negative_promptB,

@@ -9,8 +9,7 @@ class LLaMAModel:
 
     Attributes:
     device (torch.device): The device on which the model will run.
-    model (transformers.AutoModelForCausalLM): The LLaMA model for causal language modeling.
-    tokenizer (transformers.AutoTokenizer): The tokenizer for handling input data.
+    model (transformers.pipeline): The LLaMA model for causal language modeling.
     generation_params (dict): The parameters for generating responses.
     """
 
