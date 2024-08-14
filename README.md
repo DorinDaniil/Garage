@@ -1,3 +1,7 @@
+<div align="center">
+
+<img src="examples/logo.svg" width="300em" ></img> 
+
 # Garage: Generative Augmentation Framework for Transforming Object Representations in Images
 
 ![Project Page](examples/AbstractGARAGE.jpeg)
