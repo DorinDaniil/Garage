@@ -1,10 +1,11 @@
 <div align="center">
-  <img src="examples/logo.svg" width="200em" />
-</div>
+  
+<img src="examples/logo.svg" width="200em" />
 
 # Garage: Generative Augmentation Framework for Transforming Object Representations in Images
 
 ![Project Page](examples/AbstractGARAGE.jpeg)
+</div>
 
 Welcome to **Garage**, a cutting-edge Python library designed for generative image augmentation! Our library includes the Augmenter model, which leverages advanced machine learning techniques to generate new objects and prompts, seamlessly replacing specified objects in images with new ones using PowerPaint.
 
