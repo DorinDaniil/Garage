@@ -104,8 +104,8 @@ WORKDIR /home/${USER}/Garage
 RUN git lfs clone https://huggingface.co/JunhaoZhuang/PowerPaint-v2-1/ /home/${USER}/Garage/Garage/models/checkpoints/ppt-v2-1
 RUN git lfs clone https://huggingface.co/llava-hf/llava-1.5-7b-hf /home/${USER}/Garage/Garage/models/checkpoints/llava-1.5-7b-hf
 RUN git lfs clone https://huggingface.co/danulkin/llama /home/${USER}/Garage/Garage/models/checkpoints/llama-3-8b-Instruct
-RUN wget -O /home/${USER}/Garage/Garage/models/checkpoints/sam_vit_h_4b8939.pth https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth
-RUN wget -O /home/${USER}/Garage/Garage/models/checkpoints/groundingdino_swint_ogc.pth https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alpha/groundingdino_swint_ogc.pth
+RUN wget -O /home/${USER}/Garage/Garage/models/checkpoints/GroundedSegmentAnything/sam_vit_h_4b8939.pth https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth
+RUN wget -O /home/${USER}/Garage/Garage/models/checkpoints/GroundedSegmentAnything/groundingdino_swint_ogc.pth https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alpha/groundingdino_swint_ogc.pth
 
 # upgrade pip
 ARG PIP_VERSION=23.3.1
