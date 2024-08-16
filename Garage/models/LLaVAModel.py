@@ -28,7 +28,7 @@ class LLaVAModel:
         checkpoints_directory = os.path.join(script_directory, "checkpoints", model_name)
 
         self.model = transformers.LlavaForConditionalGeneration.from_pretrained(checkpoints_directory, 
-                                                                                torch_dtype=torch.bfloat16
+                                                                                torch_dtype=torch.float16
                                                                                 ).to(self.device)
         self.processor = transformers.AutoProcessor.from_pretrained(checkpoints_directory)
 

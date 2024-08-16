@@ -30,7 +30,7 @@ class LLaMAModel:
         self.model = transformers.pipeline(
                 "text-generation",
                 model=checkpoints_directory,
-                model_kwargs={"torch_dtype": torch.bfloat16},
+                model_kwargs={"torch_dtype": torch.float16},
                 device=self.device,
                 pad_token_id=128009
         )
