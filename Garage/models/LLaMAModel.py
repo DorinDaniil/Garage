@@ -14,6 +14,8 @@ class LLaMAModel:
     """
 
     def __init__(self, 
+                 model=None,
+                 tokenizer=None,
                  device: str = "cuda", 
                  model_name: str = "llama-3-8b-Instruct"):
         """
@@ -25,11 +27,13 @@ class LLaMAModel:
         """
         script_directory = os.path.dirname(os.path.abspath(__file__))
         checkpoints_directory = os.path.join(script_directory, "checkpoints", model_name)
-        
         self.device = torch.device(device)
+
         self.model = transformers.pipeline(
                 "text-generation",
-                model=checkpoints_directory,
+                # model=checkpoints_directory,
+                model=model,
+                tokenizer=tokenizer,
                 model_kwargs={"torch_dtype": torch.float16},
                 device=self.device,
                 pad_token_id=128009
