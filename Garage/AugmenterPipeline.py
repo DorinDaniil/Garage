@@ -25,7 +25,6 @@ class Augmenter:
         self.accelerator = Accelerator()
 
         self._models = {
-            # "LLaMA": LLaMAModel(device=self.device),
             "LLaMA": None,
             "LLaVA": LLaVAModel(device=self.device),
             "PowerPaint": PowerPaintModel(device=self.device)
@@ -33,8 +32,8 @@ class Augmenter:
 
         llama_model = self._models["LLaVA"].model.language_model
         llama_tokenizer = self._models["LLaVA"].processor.tokenizer
-        self._models["LLaMA"] = LLaMAModel(model=llama_model, 
-                                           tokenizer=llama_tokenizer, 
+        self._models["LLaMA"] = LLaMAModel(model=llama_model,
+                                           tokenizer=llama_tokenizer,
                                            device=self.device)
 
 

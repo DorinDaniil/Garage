@@ -78,8 +78,9 @@ class LLaMAModel:
         messages = [
             {"role": "user", "content": prompt},
         ]
-        outputs = self.model(messages, **self.generation_params)
-        assistant_response = outputs[0]["generated_text"][-1]["content"]
+        outputs = self.model(prompt, **self.generation_params)
+        response = outputs[0]["generated_text"]
+        assistant_response = response.replace(prompt, '', 1).strip().split('\n')[0]
 
         return assistant_response
 
