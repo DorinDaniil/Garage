@@ -1,6 +1,5 @@
 import torch
 import transformers
-import os
 from typing import Optional, List, Tuple
 
 class LLaMAModel:
@@ -16,22 +15,14 @@ class LLaMAModel:
     def __init__(self, 
                  model=None,
                  tokenizer=None,
-                 device: str = "cuda", 
-                 model_name: str = "llama-3-8b-Instruct"):
+                 device: str = "cuda"):
         """
         Initializes the model.
-
-        Args:
-        device (str): Describing the device on which the model will run. Defaults to "cuda".
-        model_name (str): The name of the model. Defaults to "llama-3-8b-Instruct".
         """
-        script_directory = os.path.dirname(os.path.abspath(__file__))
-        checkpoints_directory = os.path.join(script_directory, "checkpoints", model_name)
         self.device = torch.device(device)
 
         self.model = transformers.pipeline(
                 "text-generation",
-                # model=checkpoints_directory,
                 model=model,
                 tokenizer=tokenizer,
                 model_kwargs={"torch_dtype": torch.float16},
@@ -75,9 +66,6 @@ class LLaMAModel:
         Returns:
         str: The generated response.
         """
-        messages = [
-            {"role": "user", "content": prompt},
-        ]
         outputs = self.model(prompt, **self.generation_params)
         response = outputs[0]["generated_text"]
         assistant_response = response.replace(prompt, '', 1).strip().split('\n')[0]
@@ -116,7 +104,7 @@ class LLaMAModel:
                     " The image should remain believable after replacement."
                     f" So, image description: {image_description}, existing object: {current_object}, a list of potential new objects: {new_objects_list}."
                     " You should select and return only the name of new object without quotes from the provided list,"
-                    " which fits into the picture to replace the existing one. Return only name of new object and nothing else. ASSISTANT: ")
+                    " which fits into the picture to replace the existing one. Return only name of new object and nothing else. ASSISTANT: a")
 
         new_object = self._infer(prompt_1 if new_objects_list is None else prompt_2)
 

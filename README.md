@@ -114,7 +114,7 @@ The `result` variable will contain the modified image, prompt used for generatio
 
 ### Examples
 
-More examples of how to use **Garage** refer to the example.ipynb
+More examples of how to use **Garage** refer to the GarageExample.ipynb
 
 ## Download augmented datasets
 
