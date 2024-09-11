@@ -1,19 +1,10 @@
-'''
-function which accepts location, object mask, depth, object, scene and added object to the scene.
-- Occlusion processing. Check how to add object on one scene consecutively like in
-[Dataset Enhancement with Instance-Level Augmentations](https://www.notion.so/Dataset-Enhancement-with-Instance-Level-Augmentations-408964b799b744d4a75e69b044c08b73?pvs=21)
-
-- Creating textual description for training
-    add cat in point size=10
-    *add cat near (find closest object) 
-    Add parameter of scale of object
-'''
 import numpy as np
 import torch
 import random
 import copy
 import cv2
 from PIL import Image, ImageOps
+from typing import Tuple, List
 from .models import PowerPaintControlNet
 
 class ObjectAdder():
@@ -32,7 +23,16 @@ class ObjectAdder():
         self.depth_estimator = self.PowerPaint.depth_estimator
         self.feature_extractor = self.PowerPaint.feature_extractor
 
-    def get_depth_map(self, image):
+    def get_depth_map(self, image: Image.Image) -> Image.Image:
+        """
+        Gets the depth map of the given image.
+
+        Args:
+        image (Image.Image): The input image.
+
+        Returns:
+        Image.Image: The depth map of the input image.
+        """
         size = image.size
         image = self.feature_extractor(images=image, return_tensors="pt").pixel_values.to("cuda")
         with torch.no_grad(), torch.autocast("cuda"):
@@ -52,7 +52,17 @@ class ObjectAdder():
         image = Image.fromarray((image * 255.0).clip(0, 255).astype(np.uint8))
         return image.resize(size)
 
-    def resize_and_random_flip(self, image, mask):
+    def resize_and_random_flip(self, image: Image.Image, mask: Image.Image) -> Tuple[Image.Image, Image.Image]:
+        """
+        Resizes and randomly flips the given image and mask.
+
+        Args:
+        image (Image.Image): The input image.
+        mask (Image.Image): The input mask.
+
+        Returns:
+        Tuple[Image.Image, Image.Image]: The resized and flipped image and mask.
+        """
         # Randomly select a resizing factor between 0.5 and 1.5
         factor = random.uniform(0.2, 0.5)
         # Calculate the new size
@@ -67,7 +77,17 @@ class ObjectAdder():
 
         return resized_image, resized_mask
     
-    def calculate_average_depth_and_bottom_point(self, depth_map, mask):
+    def calculate_average_depth_and_bottom_point(self, depth_map: Image.Image, mask: Image.Image) -> Tuple[float, np.ndarray]:
+        """
+        Calculates the average depth and bottom point of the given depth map and mask.
+
+        Args:
+        depth_map (Image.Image): The input depth map.
+        mask (Image.Image): The input mask.
+
+        Returns:
+        Tuple[float, np.ndarray]: The average depth and bottom point.
+        """
         # Ensure both inputs are numpy arrays
         depth_map = np.array(depth_map)
         mask = np.array(mask)
@@ -93,7 +113,17 @@ class ObjectAdder():
         
         return average_depth, bottom_point
     
-    def sample_random_coordinates(self, array, num_samples=1):
+    def sample_random_coordinates(self, array: np.ndarray, num_samples: int = 1) -> List[Tuple[int, int]]:
+        """
+        Samples random coordinates from the given array.
+
+        Args:
+        array (np.ndarray): The input array.
+        num_samples (int): The number of samples to take. Defaults to 1.
+
+        Returns:
+        List[Tuple[int, int]]: The sampled coordinates.
+        """
         # Find indices where the value is 1
         indices = np.argwhere(array == 1)
         # If num_samples is greater than available indices, adjust the sample size
@@ -102,20 +132,46 @@ class ObjectAdder():
         sampled_indices = indices[np.random.choice(len(indices), num_samples, replace=False)]
         # Return the sampled coordinates as a list of tuples
         return [tuple(coord) for coord in sampled_indices]
-    
-    def blend_condition_images(self, scene, image, mask_image, position):
+
+
+    def blend_condition_images(self, scene: Image.Image, image: Image.Image, mask_image: Image.Image, position: Tuple[int, int]) -> Image.Image:
+        """
+        Blends the condition images.
+
+        Args:
+        scene (Image.Image): The scene image.
+        image (Image.Image): The image to blend.
+        mask_image (Image.Image): The mask image.
+        position (Tuple[int, int]): The position to blend at.
+
+        Returns:
+        Image.Image: The blended image.
+        """
         scene = copy.copy(scene)
         # Paste the small image onto the large image at the defined position
         scene.paste(image, position, mask_image)
         return scene
-    
+
+
     def __call__(self,
-                 scene_image,
-                 object_image,
-                 object_image_mask,
-                 prompt,
-                 seed):
-        
+                scene_image: Image.Image,
+                object_image: Image.Image,
+                object_image_mask: Image.Image,
+                prompt: str,
+                seed: int) -> Tuple[Image.Image, Image.Image]:
+        """
+        Calls the model to generate an image.
+
+        Args:
+        scene_image (Image.Image): The scene image.
+        object_image (Image.Image): The object image.
+        object_image_mask (Image.Image): The object image mask.
+        prompt (str): The prompt to use.
+        seed (int): The seed to use.
+
+        Returns:
+        Tuple[Image.Image, Image.Image]: The generated image and the control image.
+        """
         np.random.seed(seed)
         random.seed(seed)
         object_depth = self.get_depth_map(object_image)
