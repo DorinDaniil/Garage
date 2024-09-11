@@ -13,12 +13,6 @@ from safetensors.torch import load_model
 from typing import Dict, Optional, Tuple
 from PIL import Image, ImageFilter
 
-'''
-Main information for usage:
-git lfs clone https://huggingface.co/JunhaoZhuang/PowerPaint-v1/ Padd/models/checkpoints/ppt-v1 
-!pip install controlnet_aux==0.0.5
-'''
-
 def set_seed(seed: int) -> None:
     """
     Sets the seed for all random number generators.
