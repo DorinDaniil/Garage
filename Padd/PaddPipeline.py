@@ -52,7 +52,7 @@ class ObjectAdder():
         image = Image.fromarray((image * 255.0).clip(0, 255).astype(np.uint8))
         return image.resize(size)
 
-    def resize_and_random_flip(self, image, mask):
+    def resize_and_random_flip(self, image, mask, position_bbox = None):
         # Randomly select a resizing factor between 0.5 and 1.5
         factor = random.uniform(0.2, 0.5)
         # Calculate the new size
@@ -152,7 +152,9 @@ class ObjectAdder():
                  object_image,
                  object_image_mask,
                  prompt,
-                 seed):
+                 seed,
+                 position_bbox = None,
+                 ):
         
         np.random.seed(seed)
         random.seed(seed)
