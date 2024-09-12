@@ -10,32 +10,33 @@ from .PowerPaint.pipelines import StableDiffusionControlNetInpaintPipeline
 from .PowerPaint.pipelines import StableDiffusionInpaintPipeline as Pipeline
 from .PowerPaint.utils import TokenizerWrapper, add_tokens
 from safetensors.torch import load_model
-from typing import Dict
+from typing import Dict, Optional, Tuple
 from PIL import Image, ImageFilter
 
-'''
-Main information for usage:
-git lfs clone https://huggingface.co/JunhaoZhuang/PowerPaint-v1/ Padd/models/checkpoints/ppt-v1 
-!pip install controlnet_aux==0.0.5
-'''
+def set_seed(seed: int) -> None:
+    """
+    Sets the seed for all random number generators.
 
-def set_seed(seed):
+    Args:
+    seed (int): The seed to set.
+    """
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
     np.random.seed(seed)
     random.seed(seed)
 
+
 class PowerPaintControlNet:
     def __init__(self, 
                  device: str = "cuda", 
-                 model_name: str = "ppt-v1"):
+                 model_name: str = "ppt-v1") -> None:
         """
         Initializes the PowerPaint model with ControlNet.
 
         Args:
         device (str): Describing the device on which the model will run. Defaults to "cuda".
-        checkpoints_path (str): Path to the model checkpoints. Defaults to "ppt-v1".
+        model_name (str): The name of the model. Defaults to "ppt-v1".
         """
         self.device = device
         script_directory = os.path.dirname(os.path.abspath(__file__))
@@ -103,18 +104,27 @@ class PowerPaintControlNet:
         return control_pipe
     
 
-    def to(self, device):
+    def to(self, device: torch.device) -> None:
         """
         Moves the model to the specified device.
         
         Args:
         device (torch.device): The device on which the model will run.
         """
-        self.pipe.to(device)
+        self.control_pipe.to(device)
         self.device = device
 
 
-    def get_depth_map(self, image):
+    def get_depth_map(self, image: Image.Image) -> Image.Image:
+        """
+        Gets the depth map of the given image.
+
+        Args:
+        image (Image.Image): The input image.
+
+        Returns:
+        Image.Image: The depth map of the input image.
+        """
         image = self.feature_extractor(images=image, return_tensors="pt").pixel_values.to(self.device)
         with torch.no_grad(), torch.autocast(self.device):
             depth_map = self.depth_estimator(image).predicted_depth
@@ -133,9 +143,15 @@ class PowerPaintControlNet:
         image = image.permute(0, 2, 3, 1).cpu().numpy()[0]
         image = Image.fromarray((image * 255.0).clip(0, 255).astype(np.uint8))
         return image
-    
 
-    def load_controlnet(self, control_type):
+
+    def load_controlnet(self, control_type: str) -> None:
+        """
+        Loads the ControlNet model based on the given control type.
+
+        Args:
+        control_type (str): The type of control to load.
+        """
         if self.current_control != control_type:
             if control_type == "canny" or control_type is None:
                 self.control_pipe.controlnet = ControlNetModel.from_pretrained(
@@ -158,24 +174,40 @@ class PowerPaintControlNet:
             self.control_pipe = self.control_pipe.to(self.device)
             self.current_control = control_type
 
+
     def __call__(
         self,
         input_image: Dict[str, Image.Image],
-        input_control_image: Image.Image,
         control_type: str,
         prompt: str,
         ddim_steps: int,
         scale: float,
         seed: int,
         controlnet_conditioning_scale: float,
-    )-> Image.Image:
+        input_control_image: Optional[Image.Image] = None,
+    ) -> Tuple[Image.Image, Image.Image]:
+        """
+        Calls the model to generate an image based on the given input.
+
+        Args:
+        input_image (Dict[str, Image.Image]): The input image.
+        control_type (str): The type of control to use.
+        prompt (str): The prompt to use.
+        ddim_steps (int): The number of DDIM steps to use.
+        scale (float): The scale to use.
+        seed (int): The seed to use.
+        controlnet_conditioning_scale (float): The ControlNet conditioning scale to use.
+        input_control_image (Optional[Image.Image]): The input control image. Defaults to None.
+
+        Returns:
+        Tuple[Image.Image, Image.Image]: The generated image and the control image.
+        """
         
         promptA = prompt + " P_obj"
         promptB = prompt + " P_obj"
-        negative_promptA = ("bad anatomy, bad proportions, blurry, cropped, deformed, "
-                            "worst quality, low quality, normal quality, bad quality, blurry, P_obj")
-        negative_promptB = ("bad anatomy, bad proportions, blurry, cropped, deformed, "
-                            "worst quality, low quality, normal quality, bad quality, blurry, P_obj")
+        negative_promptA = "worst quality, low quality, normal quality, bad quality, blurry, P_obj"
+        negative_promptB = "worst quality, low quality, normal quality, bad quality, blurry, P_obj"
+
         size1, size2 = input_image["image"].convert("RGB").size
 
         if size1 < size2:
@@ -190,7 +222,10 @@ class PowerPaintControlNet:
 
         if control_type != self.current_control:
             self.load_controlnet(control_type)
-        controlnet_image = input_control_image
+        if input_control_image is None:
+            controlnet_image = input_image["image"]
+        else:
+            controlnet_image = input_control_image
         if control_type == "canny":
             controlnet_image = controlnet_image.resize((H, W))
             controlnet_image = np.array(controlnet_image)
@@ -202,7 +237,8 @@ class PowerPaintControlNet:
             controlnet_image = self.openpose(controlnet_image)
         elif control_type == "depth":
             controlnet_image = controlnet_image.resize((H, W))
-            controlnet_image = self.get_depth_map(controlnet_image)
+            if input_control_image is None:
+                controlnet_image = self.get_depth_map(controlnet_image)
         else:
             controlnet_image = self.hed(controlnet_image)
 
