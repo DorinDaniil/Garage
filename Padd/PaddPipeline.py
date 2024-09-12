@@ -52,10 +52,15 @@ class ObjectAdder():
         image = Image.fromarray((image * 255.0).clip(0, 255).astype(np.uint8))
         return image.resize(size)
 
-    def resize_and_random_flip(self, image, mask):
+    def resize_and_random_flip(self, image, mask, position_bbox=None):
         # Randomly select a resizing factor between 0.5 and 1.5
         factor = random.uniform(0.2, 0.5)
         # Calculate the new size
+        if position_bbox is not None:
+            x1, y1, x2, y2 = position_bbox
+            x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+            factor = np.sqrt( (x2 - x1) * (y2 - y1)  / image.width / image.height )
+            print(image.width*factor ,image.height*factor)
         new_size = (int(image.width * factor), int(image.height * factor))
         # Resize the images
         resized_image = image.resize(new_size)
@@ -109,12 +114,15 @@ class ObjectAdder():
         scene.paste(image, position, mask_image)
         return scene
     
-    def __call__(self,
-                 scene_image,
-                 object_image,
-                 object_image_mask,
-                 prompt,
-                 seed):
+    def __call__(
+                self,
+                scene_image,
+                object_image,
+                object_image_mask,
+                prompt,
+                seed,
+                position_bbox = None ,
+        ):
         
         np.random.seed(seed)
         random.seed(seed)
@@ -126,12 +134,20 @@ class ObjectAdder():
         object_depth.resize(size)
         object_image_mask.resize(size)
         
-        resized_object_depth, resized_object_mask = self.resize_and_random_flip(object_depth, object_image_mask)
+        resized_object_depth, resized_object_mask = self.resize_and_random_flip(object_depth, object_image_mask, position_bbox=position_bbox)
         average_depth, bottom_point = self.calculate_average_depth_and_bottom_point(resized_object_depth, resized_object_mask)
 
+        
         location_array = (np.array(scene_depth) > 195).astype(float)
+        if position_bbox is not None:
+            x1, y1, x2, y2 = position_bbox
+            x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+            new_location_array = np.zeros_like(location_array)
+            new_location_array[y1:y2+1, x1:x2+1] = location_array[y1:y2+1, x1:x2+1]
+            location_array = new_location_array
         sampled_coords = self.sample_random_coordinates(location_array, num_samples=1)
 
+        
         object_point = bottom_point
         scene_point = np.array(sampled_coords[0])[:2]
         paste_x = (scene_point[0] - object_point[0])
