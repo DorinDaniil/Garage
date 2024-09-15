@@ -360,5 +360,5 @@ class GradioWindow():
     
 if __name__ == "__main__":
     window = GradioWindow()
-    window.demo.launch(share=False)
+    window.demo.launch(share=True)
     window.demo.close()

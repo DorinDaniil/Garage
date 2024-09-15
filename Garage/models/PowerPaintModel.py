@@ -37,14 +37,14 @@ class PowerPaintModel:
         StableDiffusionPowerPaintBrushNetPipeline: The prepared pipeline.
         """
         unet = UNet2DConditionModel.from_pretrained(
-            "runwayml/stable-diffusion-v1-5",
+            "CompVis/stable-diffusion-v1-4",
             subfolder="unet",
             revision=None,
             torch_dtype=self.weight_dtype
         )
         
         text_encoder_brushnet = CLIPTextModel.from_pretrained(
-            "runwayml/stable-diffusion-v1-5",
+            "CompVis/stable-diffusion-v1-4",
             subfolder="text_encoder",
             revision=None,
             torch_dtype=self.weight_dtype
