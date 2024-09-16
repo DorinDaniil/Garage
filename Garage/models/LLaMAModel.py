@@ -36,7 +36,7 @@ class LLaMAModel:
         ]
         
         self.generation_params = {
-                "max_new_tokens": 256,
+                "max_new_tokens": 50,
                 "eos_token_id": terminators,
                 "do_sample": True,
                 "temperature": 0.6,
@@ -132,6 +132,7 @@ class LLaMAModel:
 
         prompt = (f"USER: Imagine that you want to describe the {new_object}'s appearance to an artist in one sentence, under 15 words."
                 f" Mention {new_object} in the description for clarity."
+                " The description should be concise, using no more than 15 words."
                 f" Focus solely on the realistic description of the {new_object}, ignoring any external elements or surroundings."
                 " For example, if the object is an animal, the description should include the animal's color, size, breed, pose, view direction etc."
                 " If the object is a vehicle, the description should include vehicle's brand or model, color, size, type, etc."
