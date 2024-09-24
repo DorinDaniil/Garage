@@ -1,6 +1,6 @@
 import torch
 from transformers import AutoModelForCausalLM, AutoProcessor
-from PIL import Image, ImageOps, ImageDraw
+from PIL import Image, ImageOps, ImageDraw, ImageEnhance
 import numpy as np
 import random
 import cv2
@@ -84,14 +84,12 @@ class ObjectAdder:
             factor = random.uniform(0.5, 1.5)
 
         new_size = (int(image.width * factor * addition_resize_factor), int(image.height * factor * addition_resize_factor))
-
         resized_image = image.resize(new_size)
         resized_mask = mask.resize(new_size)
 
         if random.choice([True, False]):
             resized_image = ImageOps.mirror(resized_image)
             resized_mask = ImageOps.mirror(resized_mask)
-
         return resized_image, resized_mask
 
     def calculate_average_depth_and_bottom_point(self, object_depth: Image.Image, object_mask: Image.Image) -> Tuple[float, Optional[np.ndarray]]:
@@ -105,16 +103,12 @@ class ObjectAdder:
         Returns:
             Tuple[float, Optional[np.ndarray]]: The average depth and bottom point.
         """
-        # Ensure both inputs are numpy arrays
         object_depth = np.array(object_depth)
         object_mask = np.array(object_mask)
-        # Ensure mask is binary
         object_mask = (object_mask > 0).astype(np.uint8)
         if len(object_depth.shape) == 3:
             object_depth = cv2.cvtColor(object_depth, cv2.COLOR_BGR2GRAY)
-        # Apply mask to object depth
         masked_depth = object_depth * object_mask
-        # Calculate average depth of non-zero (masked) pixels
         total_depth = np.sum(masked_depth)
         num_pixels = np.sum(object_mask)
         
@@ -122,7 +116,6 @@ class ObjectAdder:
             average_depth = total_depth / num_pixels
         else:
             average_depth = 0
-        # Find the bottom point (lowest non-zero pixel in the mask)
         bottom_point = None
         non_zero_indices = np.argwhere(object_mask)
         if non_zero_indices.size > 0:
@@ -151,18 +144,13 @@ class ObjectAdder:
         Returns:
             List[Tuple[int, int]]: The sampled coordinates as a list of (x, y) tuples.
         """
-        # Find indices where the value is 1
         indices = np.argwhere(array == 1)
-        # If num_samples is greater than available indices, adjust the sample size
         num_samples = min(num_samples, len(indices))
-        # Randomly sample the indices
-        
         
         if without_overlaps:
             sampled_indices = []
             mask = np.ones_like(array)
             for i in range(num_samples):
-                # print(array.shape, indices.shape)
                 img_size = image_sizes[i]
                 ind = indices[np.random.choice(len(indices),1, replace=False)][0]
                 sampled_indices.append(ind)
@@ -173,30 +161,34 @@ class ObjectAdder:
         # Return the sampled coordinates as a list of tuples
         return [tuple(coord) for coord in sampled_indices]
     
-    def blend_condition_images(
-        self, 
-        scene: Image.Image, 
-        image: Image.Image, 
-        mask_image: Image.Image, 
-        position: Tuple[int, int]
-    ) -> Image.Image:
+    def blend_condition_images(self, scene_depth: Image.Image, 
+                               object_depth: Image.Image, 
+                               object_mask: Image.Image, 
+                               object_mean_depth: float,
+                               position_depth: float,
+                               position: Tuple[int, int]) -> Image.Image:
         """
         Blends the condition images onto the scene.
 
         Args:
-            scene (Image.Image): The scene image.
-            image (Image.Image): The image to blend.
-            mask_image (Image.Image): The mask image for blending.
+            scene_depth (Image.Image): The scene image depth.
+            object_depth (Image.Image): The object depth image.
+            object_mask (Image.Image): The mask image for blending.
+            object_mean_depth (float): The object mean depth.
+            position_depth (float): The sampled point on the scene depth.
             position (Tuple[int, int]): The position to blend the image at.
 
         Returns:
             Image.Image: The blended image.
         """
-        scene = copy.copy(scene)
-        # Paste the small image onto the large image at the defined position
-        scene.paste(image, position, mask_image)
-        return scene
+        brightness_ratio = position_depth / object_mean_depth
 
+        enhancer = ImageEnhance.Brightness(object_depth)
+        object_depth_adjusted = enhancer.enhance(brightness_ratio)
+
+        scene_depth_pasted = scene_depth.copy()
+        scene_depth_pasted.paste(object_depth_adjusted, position, object_mask)
+        return scene_depth_pasted
 
     def ground_by_florence(
         self, 
@@ -299,15 +291,12 @@ class ObjectAdder:
         Returns:
             Tuple[Image.Image, Image.Image]: A tuple containing the cropped mask and the cropped original image.
         """
-        # Convert the mask to a numpy array
         mask_array = np.array(mask_image)
 
-        # Find the coordinates of the minimum and maximum bounding box
         coords = np.argwhere(mask_array)
         y_min, x_min = coords.min(axis=0)
         y_max, x_max = coords.max(axis=0)
 
-        # Crop
         cropped_mask = mask_image.crop((x_min, y_min, x_max + 1, y_max + 1))
         cropped_image = original_image.crop((x_min, y_min, x_max + 1, y_max + 1))
         return cropped_mask, cropped_image
@@ -375,7 +364,7 @@ class ObjectAdder:
 
         resized_object_depth, resized_object_mask = self.resize_and_random_flip(object_depth, object_mask, addition_resize_factor, position_bbox=position_bbox)
         mean_object_depth, bottom_point = self.calculate_average_depth_and_bottom_point(resized_object_depth, resized_object_mask)
-    
+
         object_point = bottom_point
         scene_point = np.array(sampled_coord)[:2]
         paste_x = (scene_point[0] - object_point[0])
@@ -385,6 +374,8 @@ class ObjectAdder:
         controlnet_image = self.blend_condition_images(scene_depth, 
                                                        resized_object_depth, 
                                                        resized_object_mask,
+                                                       mean_object_depth,
+                                                       sampled_point_depth,
                                                        position)
         mask = Image.new("L", scene_image.size, 0)
         mask.paste(resized_object_mask, position)
