@@ -60,13 +60,18 @@ class ObjectAdder:
         image = image.permute(0, 2, 3, 1).cpu().numpy()[0]
         return Image.fromarray((image * 255.0).clip(0, 255).astype(np.uint8)).resize(size)
 
-    def resize_and_random_flip(self, image: Image.Image, mask: Image.Image, position_bbox: Optional[Tuple[int, int, int, int]] = None) -> Tuple[Image.Image, Image.Image]:
+    def resize_and_random_flip(self, image: Image.Image, 
+                               mask: Image.Image, 
+                               addition_resize_factor: float, 
+                               position_bbox: Optional[Tuple[int, int, int, int]] = None
+                               ) -> Tuple[Image.Image, Image.Image]:
         """
         Resizes and randomly flips the image and mask.
 
         Args:
             image (Image.Image): The input image.
             mask (Image.Image): The input mask.
+            addition_resize_factor (float): Addition resize factor based on depth
             position_bbox (Optional[Tuple[int, int, int, int]]): The bounding box for resizing. Defaults to None.
 
         Returns:
@@ -78,7 +83,7 @@ class ObjectAdder:
         else:
             factor = random.uniform(0.5, 1.5)
 
-        new_size = (int(image.width * factor), int(image.height * factor))
+        new_size = (int(image.width * factor * addition_resize_factor), int(image.height * factor * addition_resize_factor))
 
         resized_image = image.resize(new_size)
         resized_mask = mask.resize(new_size)
@@ -167,8 +172,7 @@ class ObjectAdder:
             sampled_indices = indices[np.random.choice(len(indices), num_samples, replace=False)]
         # Return the sampled coordinates as a list of tuples
         return [tuple(coord) for coord in sampled_indices]
-
-
+    
     def blend_condition_images(
         self, 
         scene: Image.Image, 
@@ -359,13 +363,17 @@ class ObjectAdder:
         Returns:
             Image.Image: The scene image with the new object blended into it.
         """
-        
+        scene_depth = self.get_depth_map(scene_image)
+
         object_mask, object_image = self.crop_mask_and_image(object_mask, object_image)
         object_depth = self.get_depth_map(object_image)
 
         object_mask = object_mask.convert('L')
 
-        resized_object_depth, resized_object_mask = self.resize_and_random_flip(object_depth, object_mask, position_bbox=position_bbox)
+        sampled_point_depth = np.array(scene_depth)[int(sampled_coord[0]), int(sampled_coord[1])][0]
+        addition_resize_factor = sampled_point_depth / 255
+
+        resized_object_depth, resized_object_mask = self.resize_and_random_flip(object_depth, object_mask, addition_resize_factor, position_bbox=position_bbox)
         mean_object_depth, bottom_point = self.calculate_average_depth_and_bottom_point(resized_object_depth, resized_object_mask)
     
         object_point = bottom_point
@@ -373,10 +381,6 @@ class ObjectAdder:
         paste_x = (scene_point[0] - object_point[0])
         paste_y = (scene_point[1] - object_point[1])
         position = (paste_y, paste_x)
-
-
-        scene_depth = self.get_depth_map(scene_image)
-        # bottom_point_depth = np.array(scene_depth)[int(sampled_coord[0]), int(sampled_coord[1])][0]
 
         controlnet_image = self.blend_condition_images(scene_depth, 
                                                        resized_object_depth, 
@@ -427,6 +431,9 @@ class ObjectAdder:
 
         new_images = []
         controlnet_images = []
+
+        # Preprocessing
+        object_masks = [object_mask.convert('L') for object_mask in object_masks]
 
         scene_depth = self.get_depth_map(scene_image)
         # search position bbox on the scene
