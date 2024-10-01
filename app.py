@@ -42,7 +42,8 @@ class GradioWindow():
         self.model_type = SAM_ENCODER_VERSION
         self.SAM_CHECKPOINT_PATH = SAM_CHECKPOINT_PATH
 
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+        print("DEMO DEVICE: ", self.device)
         # for debug
         # self.augmenter = None
         self.augmenter = Augmenter(device=self.device)
