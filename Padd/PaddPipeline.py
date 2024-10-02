@@ -4,12 +4,14 @@ from PIL import Image, ImageOps, ImageDraw, ImageEnhance
 import numpy as np
 import random
 import cv2
+import os
 import copy
 from typing import Optional, Tuple, List
 from .models import PowerPaintControlNet
+from .models import PhysicsModel
 
 class ObjectAdder:
-    def __init__(self, device: str = "cuda") -> None:
+    def __init__(self, device: str = "cuda", physic_model='v0.1') -> None:
         """
         Initializes the model which adds an object to the scene.
 
@@ -31,6 +33,13 @@ class ObjectAdder:
             torch_dtype='auto'
         ).eval().to(self.device)
         self.florence_processor = AutoProcessor.from_pretrained(self.florence_model_id, trust_remote_code=True)
+        
+        self.physic_model = physic_model
+        if physic_model:
+            script_directory = os.path.dirname(os.path.abspath(__file__))
+            self.checkpoints_path = os.path.join(script_directory, "PhysicModel", "checkpoints", physic_model)
+            self.physic_model = PhysicsModel.from_pretrain('/home/jovyan/afilatov/Augmentations/physics_model/ckpt/epoch_99/model.safetensors')
+
 
     def get_depth_map(self, image: Image.Image) -> Image.Image:
         """
@@ -146,7 +155,7 @@ class ObjectAdder:
         """
         indices = np.argwhere(array == 1)
         num_samples = min(num_samples, len(indices))
-        
+        without_overlaps = False
         if without_overlaps:
             sampled_indices = []
             mask = np.ones_like(array)
@@ -239,7 +248,7 @@ class ObjectAdder:
         """
         task_prompt = '<CAPTION_TO_PHRASE_GROUNDING>'
         text_input = "A small surface at the bottom, or some position"
-        results = self.ground_by_florence(scene ,task_prompt, text_input=text_input)
+        results = self.ground_by_florence(scene, task_prompt, text_input=text_input)
 
         # Just search a big surface, but not large than 0.6 of volume scene
         # Also caption is not checked, we use only grounded bboxes 
@@ -325,7 +334,20 @@ class ObjectAdder:
         draw.rectangle([(x1, y1), (x2, y2)], outline=outline, width=width)
         return image
     
-
+    def generate_point_with_physic_models(
+        self,
+        object_image: Image.Image, 
+        scene_image: Image.Image, 
+        scene_depth_size: Tuple[int, int], 
+        num_samples: int = 10, 
+    ):
+        rand_points = np.random.random((num_samples, 2))
+        for point in rand_points:
+            result_for_point = self.physic_model.run_inference(np.asarray(scene_image), np.asarray(object_image), point)
+            if result_for_point:
+                return [int(point[0]*scene_depth_size[0]), int(point[1]*scene_depth_size[1])]
+        
+        return None
     
     def generate_new_object(
         self, 
@@ -430,24 +452,29 @@ class ObjectAdder:
         # search position bbox on the scene
         position_bbox = self.preprocess_scene_image(scene_image)
         location_array = self.filter_location(position_bbox , scene_depth)
-        surface_size = (position_bbox[2] - position_bbox[0] , position_bbox[3] - position_bbox[1] )
+        surface_size = (position_bbox[2] - position_bbox[0] , position_bbox[3] - position_bbox[1])
         image_sizes = [img.size for img in object_images]
         sampled_coords = self.sample_random_coordinates(location_array, 
                                                         num_samples=len(object_images), 
                                                         without_overlaps=True, 
                                                         surface_size = surface_size, 
                                                         image_sizes=image_sizes)
+        
         sorted_sampled_coords = sorted(sampled_coords, key=lambda x: x[0])
         scene = scene_image.copy()
         for object_image, object_mask, prompt, sampled_coord in zip(object_images, object_masks, prompts, sorted_sampled_coords):
+            if self.physic_model:
+                physic_model_point = self.generate_point_with_physic_models(scene, object_image, np.asarray(scene_depth).shape)
+                if physic_model_point is not None:
+                    sampled_coord = physic_model_point
             scene, controlnet_image = self.generate_new_object(object_image, 
-                                                                object_mask, 
-                                                                scene,
-                                                                position_bbox, 
-                                                                sampled_coord, 
-                                                                prompt, 
-                                                                seed=seed
-                                                                )
+                                                               object_mask, 
+                                                               scene,
+                                                               position_bbox, 
+                                                               sampled_coord, 
+                                                               prompt, 
+                                                               seed=seed
+                                                               )
             
             new_images.append(scene)
             controlnet_images.append(controlnet_image)
