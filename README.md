@@ -31,7 +31,7 @@ python Garage/models/GroundedSegmentAnything/GroundingDINO/setup.py install
 
 ### Use Demo
 #### Online DEMO
-Feel free to test our free online demo via [link](https://bf9c182f6430d34072.gradio.live/)
+Feel free to test our free online demo via [link](https://3c1db586cb6b08ee16.gradio.live)
 
 #### Python Script
 You can launch the Gradio interface for **Garage** by running the following command:
