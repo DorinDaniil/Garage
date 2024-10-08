@@ -429,6 +429,10 @@ class ObjectAdder:
         scene_depth = self.get_depth_map(scene_image)
         # search position bbox on the scene
         position_bbox = self.preprocess_scene_image(scene_image)
+
+        # scene_image_copy = scene_image.copy()
+        # self.draw_bbox(scene_image_copy, position_bbox)
+        
         location_array = self.filter_location(position_bbox , scene_depth)
         surface_size = (position_bbox[2] - position_bbox[0] , position_bbox[3] - position_bbox[1] )
         image_sizes = [img.size for img in object_images]
