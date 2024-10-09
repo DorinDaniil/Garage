@@ -4,9 +4,10 @@ from PIL import Image, ImageOps, ImageDraw, ImageEnhance
 import numpy as np
 import random
 import cv2
-import copy
+import os
 from typing import Optional, Tuple, List
 from .models import PowerPaintControlNet
+from .models import PhysicsModel
 
 class ObjectAdder:
     def __init__(self, device: str = "cuda") -> None:
@@ -31,6 +32,13 @@ class ObjectAdder:
             torch_dtype='auto'
         ).eval().to(self.device)
         self.florence_processor = AutoProcessor.from_pretrained(self.florence_model_id, trust_remote_code=True)
+
+        print('Physic model...')
+        # TODO: need to throw weights on hf and upload them to the checkpoints folder from it
+        # path = "/home/jovyan/afilatov/Augmentations/physics_model/ckpt/epoch_99/model.safetensors"
+        script_directory = os.path.dirname(os.path.abspath(__file__))
+        checkpoints_path = os.path.join(script_directory, "models", "checkpoints", "physic-v0-1", "model.safetensors")
+        self.PhysicsModel = PhysicsModel.from_pretrain(checkpoints_path)
 
     def get_depth_map(self, image: Image.Image) -> Image.Image:
         """
@@ -254,6 +262,21 @@ class ObjectAdder:
         position_bbox = result_bboxes[best_bbox_index]
         return position_bbox
 
+    def generate_point_with_physic_models(
+        self,
+        object_image: Image.Image, 
+        scene_image: Image.Image, 
+        scene_depth_size: Tuple[int, int], 
+        num_samples: int = 10, 
+    ):
+        rand_points = np.random.random((num_samples, 2))
+        for point in rand_points:
+            result_for_point = self.PhysicsModel.run_inference(np.asarray(scene_image), np.asarray(object_image), point)
+            if result_for_point:
+                return [int(point[0]*scene_depth_size[0]), int(point[1]*scene_depth_size[1])]
+        
+        return None
+
     def filter_location(self, position_bbox: Tuple[int, int, int, int], scene_depth: np.ndarray) -> np.ndarray:
         """
         Filters the location based on the scene's depth information.
@@ -430,6 +453,7 @@ class ObjectAdder:
         # search position bbox on the scene
         position_bbox = self.preprocess_scene_image(scene_image)
 
+        # code to draw Florence result 
         # scene_image_copy = scene_image.copy()
         # self.draw_bbox(scene_image_copy, position_bbox)
         
@@ -441,18 +465,23 @@ class ObjectAdder:
                                                         without_overlaps=True, 
                                                         surface_size = surface_size, 
                                                         image_sizes=image_sizes)
-        sorted_sampled_coords = sorted(sampled_coords, key=lambda x: x[0])
+        
+        sorted_sampled_coords = sorted(sampled_coords, key=lambda x: np.array(scene_depth)[int(x[0]), int(x[1])][0])
         scene = scene_image.copy()
         for object_image, object_mask, prompt, sampled_coord in zip(object_images, object_masks, prompts, sorted_sampled_coords):
-            scene, controlnet_image = self.generate_new_object(object_image, 
-                                                                object_mask, 
-                                                                scene,
-                                                                position_bbox, 
-                                                                sampled_coord, 
-                                                                prompt, 
-                                                                seed=seed
-                                                                )
+            result_for_point = self.PhysicsModel.run_inference(np.asarray(scene), np.asarray(object_image), (sampled_coord[0], sampled_coord[1]))
+            if not result_for_point:
+                continue
+            else:
+                scene, controlnet_image = self.generate_new_object(object_image, 
+                                                                    object_mask, 
+                                                                    scene,
+                                                                    position_bbox, 
+                                                                    sampled_coord, 
+                                                                    prompt, 
+                                                                    seed=seed
+                                                                    )
             
-            new_images.append(scene)
-            controlnet_images.append(controlnet_image)
+                new_images.append(scene)
+                controlnet_images.append(controlnet_image)
         return new_images, controlnet_images
