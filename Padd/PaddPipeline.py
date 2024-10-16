@@ -154,6 +154,8 @@ class ObjectAdder:
         """
         indices = np.argwhere(array == 1)
         num_samples = min(num_samples, len(indices))
+        # print('Num samples:', num_samples)
+        # print('Init indices:', indices)
         
         if without_overlaps:
             sampled_indices = []
@@ -162,6 +164,7 @@ class ObjectAdder:
                 img_size = image_sizes[i]
                 ind = indices[np.random.choice(len(indices),1, replace=False)][0]
                 sampled_indices.append(ind)
+                # mask
                 mask[ind[0]:ind[0] + int(img_size[0])][ind[1]:ind[1]+int(img_size[1])] = 0
                 indices = np.argwhere( array*mask == 1)
         else:
@@ -256,8 +259,8 @@ class ObjectAdder:
         image_volume = scene.size[0]*scene.size[1]
         volumes = [(bbox[2] - bbox[0])*(bbox[3]-bbox[1]) / image_volume for bbox in result_bboxes ]
         filtered_volumes = [ vol if vol < 0.4 else 0 for vol in volumes ]
-        if len(filtered_volumes) == 0 : # Then use lower half of scene
-            filtered_volumes = [[0,0,scene.size[0], int(scene.size[1]/2)]]     
+        if len(filtered_volumes) == 0 : # Then use full scene
+            filtered_volumes = [[0,0,scene.size[0], scene.size[1]]]     
         best_bbox_index = np.argmax(filtered_volumes)
         position_bbox = result_bboxes[best_bbox_index]
         return position_bbox
@@ -290,6 +293,7 @@ class ObjectAdder:
         """
         q = np.quantile(scene_depth,q = 0.5 )
         location_array = (np.array(scene_depth) > q).astype(float)
+        # print('Count pixels location array after quantile filtering:',(location_array))
 
         if position_bbox is not None:
             x1, y1, x2, y2 = position_bbox
@@ -297,6 +301,12 @@ class ObjectAdder:
             new_location_array = np.zeros_like(location_array)
             new_location_array[y1:y2+1, x1:x2+1] = location_array[y1:y2+1, x1:x2+1]
             location_array = new_location_array
+            if np.all(location_array == 0):
+                q = np.quantile(scene_depth,q = 0.01 )
+                location_array = (np.array(scene_depth) > q).astype(float)
+                new_location_array[y1:y2+1, x1:x2+1] = location_array[y1:y2+1, x1:x2+1]
+                location_array = new_location_array
+            # print('Count pixels location array after  intersection:',(location_array))
         return location_array
     
     def crop_mask_and_image(
@@ -376,7 +386,6 @@ class ObjectAdder:
             Image.Image: The scene image with the new object blended into it.
         """
         scene_depth = self.get_depth_map(scene_image)
-
         object_mask, object_image = self.crop_mask_and_image(object_mask, object_image)
         object_depth = self.get_depth_map(object_image)
 
@@ -414,7 +423,7 @@ class ObjectAdder:
                 seed=seed,
                 controlnet_conditioning_scale=0.8,
                 input_control_image=controlnet_image)
-        return new_image , controlnet_image
+        return new_image , controlnet_image, mask
     
     def __call__(
         self,
@@ -457,6 +466,8 @@ class ObjectAdder:
         # scene_image_copy = scene_image.copy()
         # self.draw_bbox(scene_image_copy, position_bbox)
         
+        # print('pos_bbox: ', position_bbox )
+        # print('depth scene size',scene_depth.size)
         location_array = self.filter_location(position_bbox , scene_depth)
         surface_size = (position_bbox[2] - position_bbox[0] , position_bbox[3] - position_bbox[1] )
         image_sizes = [img.size for img in object_images]
@@ -468,12 +479,19 @@ class ObjectAdder:
         
         sorted_sampled_coords = sorted(sampled_coords, key=lambda x: np.array(scene_depth)[int(x[0]), int(x[1])][0])
         scene = scene_image.copy()
+        # print('Test_1')
+        # print('prompts',prompts)
+        # print('coords:', sorted_sampled_coords)
+        masks_for_augmenter = []
         for object_image, object_mask, prompt, sampled_coord in zip(object_images, object_masks, prompts, sorted_sampled_coords):
             result_for_point = self.PhysicsModel.run_inference(np.asarray(scene), np.asarray(object_image), (sampled_coord[0], sampled_coord[1]))
+            # print('test')
             if not result_for_point:
+                # print('not results for point')
                 continue
             else:
-                scene, controlnet_image = self.generate_new_object(object_image, 
+                scene, controlnet_image, mask_for_augmenter = self.generate_new_object(
+                                                                    object_image, 
                                                                     object_mask, 
                                                                     scene,
                                                                     position_bbox, 
@@ -482,6 +500,7 @@ class ObjectAdder:
                                                                     seed=seed
                                                                     )
             
+                masks_for_augmenter.append(mask_for_augmenter)
                 new_images.append(scene)
                 controlnet_images.append(controlnet_image)
-        return new_images, controlnet_images
+        return new_images, controlnet_images, masks_for_augmenter

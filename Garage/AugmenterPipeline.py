@@ -72,7 +72,10 @@ class Augmenter:
                 ddim_steps: int = 50,
                 guidance_scale: int = 5,
                 seed: int = 1,
-                return_prompt: bool = False) -> Tuple[Image.Image, Optional[Tuple[str, str]]]:
+                prompt_extension: bool = True, 
+                return_prompt: bool = False
+                ) -> Tuple[Image.Image, Optional[Tuple[str, str]]] :
+                
         """
         Replaces the specified object in the given image with a new one.
 
@@ -96,9 +99,12 @@ class Augmenter:
         if mask.mode != 'L': 
             mask = mask.convert('L')
 
-        image_description = self._models["LLaVA"].generate_image_description(image)
-        prompt, new_object = self._models["LLaMA"].generate_prompt(current_object, image_description, new_objects_list)
-        
+        if prompt_extension:
+            image_description = self._models["LLaVA"].generate_image_description(image)
+            prompt, new_object = self._models["LLaMA"].generate_prompt(current_object, image_description, new_objects_list)
+        else:
+            prompt = new_objects_list[0]
+            new_object = prompt
         input_image = {'image': image, 'mask': mask}
         
         result = self._models["PowerPaint"](input_image=input_image,
