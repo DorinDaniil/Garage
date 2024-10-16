@@ -126,3 +126,4 @@ AlphaCLIP/
 checkpoints/
 *.pth
 
+augmentations/

@@ -80,6 +80,8 @@ class PowerPaintControlNet:
         # initialize controlnet-related models
         self.depth_estimator = AutoModelForDepthEstimation.from_pretrained("depth-anything/Depth-Anything-V2-Small-hf").to("cuda")
         self.feature_extractor = AutoImageProcessor.from_pretrained("depth-anything/Depth-Anything-V2-Small-hf")
+        # self.depth_estimator = AutoModelForDepthEstimation.from_pretrained("apple/DepthPro").to("cuda")
+        # self.feature_extractor = AutoImageProcessor.from_pretrained("apple/DepthPro")
         self.openpose = OpenposeDetector.from_pretrained("lllyasviel/ControlNet")
         self.hed = HEDdetector.from_pretrained("lllyasviel/ControlNet")
 
