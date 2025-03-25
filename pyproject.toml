@@ -1,0 +1,16 @@
+[project]
+name = "garage"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "controlnet-aux>=0.0.9",
+    "diffusers>=0.32.2",
+    "ipykernel>=6.29.5",
+    "mmengine>=0.10.6",
+    "opencv-python>=4.11.0.86",
+    "pillow==10.4.0",
+    "torch>=2.6.0",
+    "transformers>=4.49.0",
+]

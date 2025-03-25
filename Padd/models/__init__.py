@@ -1,4 +1,14 @@
 from .PowerPaintControlNet import PowerPaintControlNet
-from .PhysicModel.physic_model import PhysicsModel
+from .PowerPaintModel import PowerPaintModel
+from .PhysicModel.physic_model import PhysicsModel  # , PhysicsModel_bbox
 
-__all__ = ["PowerPaintControlNet", "PhysicsModel"]
+from .LLaMAModel import LLaMAModel
+from .LLaVAModel import LLaVAModel
+
+__all__ = [
+    "PowerPaintControlNet",
+    "PhysicsModel",
+    "PowerPaintModel",
+    "LLaMAModel",
+    "LLaVAModel",
+]
