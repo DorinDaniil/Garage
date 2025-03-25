@@ -127,3 +127,6 @@ checkpoints/
 *.pth
 
 augmentations/
+
+
+PATHS/
